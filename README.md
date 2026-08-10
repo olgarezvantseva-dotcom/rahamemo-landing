@@ -2,9 +2,9 @@
 
 A ledger that reads your bank statement so you don't have to.
 
-RahaMemo turns a raw bank statement export into a categorized, browsable record of where money actually goes— parsed automatically, kept entirely on your own device.
+RahaMemo turns a raw bank statement export into a categorized, browsable record of where money actually goes, parsed automatically, kept entirely on your own device.
 
-**Status:** in active development — not yet public.
+**Status:** in active development; not yet public.
 
 ## What it does
 
