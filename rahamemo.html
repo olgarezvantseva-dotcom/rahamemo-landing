@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RahaMemo — a personal finance ledger that reads your bank statements</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F3EC;
+    --paper-line:#DCD6C6;
+    --ink:#211F1B;
+    --ink-soft:#5B564C;
+    --teal:#3F6659;
+    --teal-soft:#E4ECE7;
+    --amber:#C4863A;
+    --amber-soft:#F3E4CE;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--amber-soft);}
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px;}
+
+  /* ---- top status strip ---- */
+  .status-strip{
+    border-bottom:1px solid var(--paper-line);
+    background:#FBFAF6;
+  }
+  .status-strip .wrap{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-top:14px;padding-bottom:14px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .status-dot{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--amber);margin-right:8px;
+    box-shadow:0 0 0 3px var(--amber-soft);
+  }
+
+  /* ---- hero ---- */
+  header.hero{padding:76px 0 56px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--teal);margin:0 0 18px;
+  }
+  h1{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:clamp(34px, 5vw, 54px);
+    line-height:1.08;
+    margin:0 0 20px;
+    max-width:16ch;
+  }
+  h1 em{font-style:italic;color:var(--teal);}
+  .lede{
+    font-size:18px;
+    color:var(--ink-soft);
+    max-width:52ch;
+    margin:0 0 34px;
+  }
+
+  /* ---- signature: live receipt-parse animation ---- */
+  .parse-demo{
+    border:1px solid var(--paper-line);
+    background:#FFFFFF;
+    border-radius:var(--radius);
+    padding:22px 24px;
+    max-width:560px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13.5px;
+    box-shadow:0 1px 0 var(--paper-line);
+  }
+  .parse-demo .raw-line{
+    color:#9C968A;
+    white-space:pre;
+    overflow:hidden;
+    border-right:2px solid transparent;
+  }
+  .parse-row{
+    display:flex;align-items:center;gap:10px;
+    margin-top:14px;opacity:0;
+    animation:reveal .5s ease forwards;
+    animation-delay:2.6s;
+  }
+  .parse-row .amount{font-weight:500;color:var(--ink);}
+  .tag{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:11.5px;font-weight:500;
+    padding:3px 9px;border-radius:999px;
+    background:var(--teal-soft);color:var(--teal);
+  }
+  .parse-arrow{
+    font-size:11px;color:#B7B0A1;letter-spacing:.04em;
+    opacity:0;animation:reveal .4s ease forwards;animation-delay:2.3s;
+    margin-top:10px;
+  }
+  @keyframes reveal{to{opacity:1;}}
+  @media (prefers-reduced-motion: reduce){
+    .parse-row, .parse-arrow{opacity:1;animation:none;}
+    .typewriter{width:auto !important;animation:none !important;border-right:none !important;}
+  }
+  .typewriter{
+    display:inline-block;
+    width:0;
+    animation:type 2s steps(34, end) forwards;
+    border-right-color:#9C968A;
+    animation-fill-mode:forwards;
+  }
+  @keyframes type{
+    from{width:0;}
+    to{width:34ch;}
+  }
+
+  /* ---- section framing ---- */
+  section{padding:52px 0;border-top:1px solid var(--paper-line);}
+  h2{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:26px;
+    margin:0 0 22px;
+  }
+  .lead-line{
+    display:flex;gap:18px;margin-bottom:26px;
+  }
+  .lead-line .num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;color:var(--ink-soft);
+    padding-top:4px;
+  }
+
+  /* ---- what it does: ledger rows ---- */
+  .ledger{border-top:1px solid var(--paper-line);}
+  .ledger-row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:6px 24px;
+    padding:18px 0;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .ledger-row .what{font-weight:500;}
+  .ledger-row .desc{
+    grid-column:1 / -1;
+    color:var(--ink-soft);
+    font-size:15px;
+    max-width:60ch;
+  }
+  .ledger-row .marker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;color:var(--teal);
+    align-self:start;
+  }
+
+  /* ---- stack ---- */
+  .stack-grid{
+    display:grid;grid-template-columns:repeat(3, 1fr);gap:14px;
+  }
+  @media (max-width:640px){.stack-grid{grid-template-columns:1fr 1fr;}}
+  .stack-card{
+    border:1px solid var(--paper-line);
+    background:#FBFAF6;
+    border-radius:var(--radius);
+    padding:16px 16px;
+  }
+  .stack-card .label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .stack-card .val{font-weight:500;font-size:15px;}
+
+  /* ---- privacy note ---- */
+  .note{
+    border-left:3px solid var(--amber);
+    background:var(--amber-soft);
+    padding:16px 20px;
+    border-radius:0 var(--radius) var(--radius) 0;
+    font-size:15px;
+    color:#5C4322;
+    max-width:60ch;
+  }
+
+  /* ---- footer ---- */
+  footer{
+    padding:44px 0 60px;
+    border-top:1px solid var(--paper-line);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  }
+  a{color:var(--teal);}
+</style>
+</head>
+<body>
+
+  <div class="status-strip">
+    <div class="wrap">
+      <span><span class="status-dot"></span>In active development — not yet public</span>
+      <span>Built by Olga Bestšastnaja</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header class="hero">
+      <p class="eyebrow">Side project · Personal finance</p>
+      <h1>A ledger that reads your <em>bank statement</em> so you don't have to.</h1>
+      <p class="lede">
+        RahaMemo turns a raw bank statement export into a categorized, browsable
+        record of where money actually goes — parsed automatically, kept entirely
+        on your own device.
+      </p>
+
+      <div class="parse-demo">
+        <div class="raw-line typewriter">MAKSEKORRALDUS COOP TALLINN 14.03 -23,40</div>
+        <div class="parse-arrow">↓ parsed</div>
+        <div class="parse-row">
+          <span class="tag">Groceries</span>
+          <span>Coop Tallinn</span>
+          <span class="amount">−€23.40</span>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="lead-line">
+        <span class="num">01</span>
+        <h2>What it does</h2>
+      </div>
+      <div class="ledger">
+        <div class="ledger-row">
+          <span class="what">Statement parsing</span>
+          <span class="marker">core</span>
+          <span class="desc">Upload a bank statement export and each line is read and structured — merchant, amount, and date pulled out of whatever format the bank exports.</span>
+        </div>
+        <div class="ledger-row">
+          <span class="what">Automatic categorization</span>
+          <span class="marker">core</span>
+          <span class="desc">Transactions are sorted into categories (groceries, transport, subscriptions, and so on) without manual tagging, using the Anthropic API to interpret merchant names and context.</span>
+        </div>
+        <div class="ledger-row">
+          <span class="what">Local-first storage</span>
+          <span class="marker">design choice</span>
+          <span class="desc">Parsed data is kept in the browser via localStorage rather than sent to a backend database — the statement stays on your device.</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="lead-line">
+        <span class="num">02</span>
+        <h2>Built with</h2>
+      </div>
+      <div class="stack-grid">
+        <div class="stack-card"><div class="label">Parsing</div><div class="val">Anthropic API</div></div>
+        <div class="stack-card"><div class="label">Frontend</div><div class="val">Web app</div></div>
+        <div class="stack-card"><div class="label">Storage</div><div class="val">localStorage</div></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="lead-line">
+        <span class="num">03</span>
+        <h2>Where it stands</h2>
+      </div>
+      <p class="lede" style="max-width:60ch;margin-bottom:20px;">
+        RahaMemo is a work in progress, built and iterated on outside of my day job.
+        Statement parsing and categorization work end-to-end; the rest of the app —
+        onboarding, editing categories, and multi-account support — is still being built out.
+      </p>
+      <div class="note">
+        Why this project exists: a decade in iGaming product ownership means I spend my
+        days making sense of messy, high-volume data for other people's businesses.
+        RahaMemo is the same instinct applied to my own household ledger.
+      </div>
+    </section>
+
+    <footer>
+      <span>RahaMemo — personal project, 2026</span>
+      <span><a href="https://www.linkedin.com/in/olgabest%C5%A1astnaja">LinkedIn ↗</a></span>
+    </footer>
+  </div>
+
+</body>
+</html>
