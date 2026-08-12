@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RahaMemo — your ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F3EC;
+    --paper-line:#DCD6C6;
+    --ink:#211F1B;
+    --ink-soft:#5B564C;
+    --teal:#3F6659;
+    --teal-soft:#E4ECE7;
+    --amber:#C4863A;
+    --amber-soft:#F3E4CE;
+    --red:#A6432E;
+    --red-soft:#F3E0DA;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--amber-soft);}
+  a{color:var(--teal);}
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px;}
+
+  /* ---- top status strip ---- */
+  .status-strip{
+    border-bottom:1px solid var(--paper-line);
+    background:#FBFAF6;
+  }
+  .status-strip .wrap{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-top:14px;padding-bottom:14px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    gap:12px;flex-wrap:wrap;
+  }
+  .status-dot{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--teal);margin-right:8px;
+    box-shadow:0 0 0 3px var(--teal-soft);
+  }
+  .status-dot.warn{background:var(--amber);box-shadow:0 0 0 3px var(--amber-soft);}
+
+  header.hero{padding:44px 0 8px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--teal);margin:0 0 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  h1{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:clamp(28px, 4vw, 40px);
+    line-height:1.12;
+    margin:0 0 12px;
+  }
+  h1 em{font-style:italic;color:var(--teal);}
+  .lede{
+    font-size:16px;
+    color:var(--ink-soft);
+    max-width:60ch;
+    margin:0 0 8px;
+  }
+
+  section{padding:32px 0;border-top:1px solid var(--paper-line);}
+  .lead-line{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px;}
+  .lead-line h2{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:22px;
+    margin:0;
+    display:flex;align-items:center;gap:12px;
+  }
+  .lead-line .num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;color:var(--ink-soft);
+  }
+
+  /* ---- panel / card ---- */
+  .panel{
+    border:1px solid var(--paper-line);
+    background:#FFFFFF;
+    border-radius:var(--radius);
+    padding:20px 22px;
+  }
+  .panel + .panel{margin-top:14px;}
+
+  label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  input[type="password"], input[type="text"], select, textarea{
+    width:100%;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14.5px;
+    color:var(--ink);
+    background:var(--paper);
+    border:1px solid var(--paper-line);
+    border-radius:8px;
+    padding:10px 12px;
+    outline:none;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--teal);}
+  textarea{font-family:'IBM Plex Mono', monospace;font-size:13px;resize:vertical;min-height:160px;}
+  .field-row{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
+  @media (max-width:640px){.field-row{grid-template-columns:1fr;}}
+  .field{margin-bottom:14px;}
+  .hint{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+
+  button{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:500;
+    font-size:14px;
+    border-radius:8px;
+    border:1px solid transparent;
+    padding:10px 18px;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--teal);color:#fff;}
+  .btn-primary:hover{background:#345449;}
+  .btn-primary:disabled{background:#9BAFA6;cursor:not-allowed;}
+  .btn-ghost{background:transparent;border-color:var(--paper-line);color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal);}
+  .btn-danger{background:transparent;border-color:var(--red-soft);color:var(--red);}
+  .btn-danger:hover{background:var(--red-soft);}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+  .tag{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:11.5px;font-weight:500;
+    padding:3px 9px;border-radius:999px;
+    background:var(--teal-soft);color:var(--teal);
+    display:inline-block;
+  }
+
+  .banner{
+    border-radius:8px;padding:12px 14px;font-size:13.5px;margin-top:14px;
+  }
+  .banner.error{background:var(--red-soft);color:#6B2A1B;border:1px solid #E3B7A6;}
+  .banner.info{background:var(--amber-soft);color:#5C4322;border:1px solid #E4C79B;}
+  .banner.success{background:var(--teal-soft);color:#2A4B40;border:1px solid #BFD5CB;}
+
+  .spinner{
+    width:14px;height:14px;border-radius:50%;
+    border:2px solid var(--teal-soft);border-top-color:var(--teal);
+    display:inline-block;animation:spin .7s linear infinite;vertical-align:-2px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---- ledger table ---- */
+  .ledger-table{width:100%;border-collapse:collapse;font-size:14px;}
+  .ledger-table th{
+    text-align:left;font-family:'IBM Plex Mono', monospace;
+    font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;
+    padding:0 8px 10px;border-bottom:1px solid var(--paper-line);
+  }
+  .ledger-table td{
+    padding:9px 8px;border-bottom:1px solid var(--paper-line);vertical-align:middle;
+  }
+  .ledger-table tr:last-child td{border-bottom:none;}
+  .ledger-table td.amount{font-family:'IBM Plex Mono', monospace;text-align:right;white-space:nowrap;}
+  .ledger-table td.amount.neg{color:var(--red);}
+  .ledger-table td.amount.pos{color:var(--teal);}
+  .cell-edit{
+    border:1px solid transparent;background:transparent;border-radius:6px;
+    padding:4px 6px;font:inherit;color:inherit;width:100%;
+  }
+  .cell-edit:hover, .cell-edit:focus{border-color:var(--paper-line);background:var(--paper);outline:none;}
+  .amount-input{text-align:right;font-family:'IBM Plex Mono', monospace;}
+  .row-del{
+    background:transparent;border:none;color:var(--ink-soft);cursor:pointer;
+    font-size:15px;padding:2px 6px;border-radius:6px;
+  }
+  .row-del:hover{color:var(--red);background:var(--red-soft);}
+  .empty-state{
+    text-align:center;color:var(--ink-soft);padding:34px 10px;font-size:14px;
+  }
+
+  /* ---- summary ---- */
+  .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+  @media (max-width:640px){.summary-grid{grid-template-columns:1fr 1fr;}}
+  .stat-card{
+    border:1px solid var(--paper-line);background:#FBFAF6;border-radius:var(--radius);
+    padding:14px 16px;
+  }
+  .stat-card .label{
+    font-family:'IBM Plex Mono', monospace;font-size:11px;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;
+  }
+  .stat-card .val{font-weight:500;font-size:19px;font-family:'Newsreader', serif;}
+
+  .cat-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px;}
+  .cat-bar-row .cat-name{width:120px;flex-shrink:0;color:var(--ink-soft);}
+  .cat-bar-track{flex:1;height:8px;background:var(--paper);border-radius:999px;overflow:hidden;}
+  .cat-bar-fill{height:100%;background:var(--teal);border-radius:999px;}
+  .cat-bar-amt{width:80px;text-align:right;font-family:'IBM Plex Mono', monospace;color:var(--ink-soft);flex-shrink:0;}
+
+  details.settings summary{cursor:pointer;font-weight:500;list-style:none;display:flex;align-items:center;gap:10px;}
+  details.settings summary::-webkit-details-marker{display:none;}
+  details.settings summary .chevron{transition:transform .15s;font-size:12px;color:var(--ink-soft);}
+  details.settings[open] summary .chevron{transform:rotate(90deg);}
+
+  footer{
+    padding:40px 0 60px;
+    border-top:1px solid var(--paper-line);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="status-strip">
+    <div class="wrap">
+      <span><span class="status-dot" id="privacyDot"></span>Everything below runs in your browser — statement text and your API key are sent only to Anthropic's API, never to a RahaMemo server (there isn't one).</span>
+      <span><a href="index.html">← RahaMemo</a></span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header class="hero">
+      <p class="eyebrow">Your ledger</p>
+      <h1>Paste a statement. Get a <em>categorized</em> ledger.</h1>
+      <p class="lede">Bring your own Anthropic API key — it's stored only in this browser's localStorage and used to call the API directly. Parsed transactions live in localStorage too.</p>
+    </header>
+
+    <section id="settingsSection">
+      <details class="settings" id="settingsDetails">
+        <summary><span class="chevron">▸</span> API key &amp; model <span class="tag" id="keyStatusTag" style="margin-left:6px;">not set</span></summary>
+        <div class="panel" style="margin-top:14px;">
+          <div class="field-row">
+            <div class="field">
+              <label for="apiKeyInput">Anthropic API key</label>
+              <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
+              <p class="hint">From <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. Stored only in this browser (localStorage) — never sent anywhere except directly to Anthropic's API.</p>
+            </div>
+            <div class="field">
+              <label for="modelSelect">Model</label>
+              <select id="modelSelect">
+                <option value="claude-opus-5">Claude Opus 5 (most capable, default)</option>
+                <option value="claude-sonnet-5">Claude Sonnet 5 (cheaper, still strong)</option>
+                <option value="claude-haiku-4-5">Claude Haiku 4.5 (fastest, cheapest)</option>
+              </select>
+              <p class="hint">Categorizing transactions is a simple task — Sonnet or Haiku work well and cost less if you're parsing often.</p>
+            </div>
+          </div>
+          <div class="field">
+            <label for="currencyInput">Currency symbol</label>
+            <input type="text" id="currencyInput" style="max-width:80px;" maxlength="3" placeholder="€">
+          </div>
+          <div class="btn-row">
+            <button class="btn-primary" id="saveSettingsBtn">Save</button>
+            <button class="btn-ghost" id="forgetKeyBtn">Forget key</button>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section id="importSection">
+      <div class="lead-line">
+        <h2><span class="num">01</span> Import a statement</h2>
+      </div>
+      <div class="panel">
+        <div class="field">
+          <label for="statementInput">Paste raw statement text</label>
+          <textarea id="statementInput" placeholder="Paste transaction lines from your bank export here — any format. e.g.&#10;MAKSEKORRALDUS COOP TALLINN 14.03 -23,40&#10;NETFLIX.COM 15.03 -13,99"></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary" id="parseBtn">Parse statement</button>
+          <label class="btn-ghost" for="fileInput" style="display:inline-block;">Upload .txt / .csv</label>
+          <input type="file" id="fileInput" accept=".txt,.csv" style="display:none;">
+          <span id="parseStatus" style="font-size:13px;color:var(--ink-soft);"></span>
+        </div>
+        <div id="importBanner"></div>
+      </div>
+    </section>
+
+    <section id="ledgerSection">
+      <div class="lead-line">
+        <h2><span class="num">02</span> Ledger</h2>
+        <div class="btn-row">
+          <button class="btn-ghost" id="addRowBtn">+ Add row</button>
+          <button class="btn-danger" id="clearAllBtn">Clear all data</button>
+        </div>
+      </div>
+
+      <div id="summaryWrap"></div>
+
+      <div class="panel">
+        <table class="ledger-table" id="ledgerTable">
+          <thead>
+            <tr>
+              <th style="width:100px;">Date</th>
+              <th>Merchant</th>
+              <th style="width:150px;">Category</th>
+              <th style="width:100px;text-align:right;">Amount</th>
+              <th style="width:32px;"></th>
+            </tr>
+          </thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState">No transactions yet — parse a statement above, or add a row manually.</div>
+      </div>
+    </section>
+
+    <footer>
+      <span>RahaMemo ledger — runs entirely client-side</span>
+      <span><a href="index.html">Back to the project page ↗</a></span>
+    </footer>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  var LS_KEY_API = "rahamemo_api_key";
+  var LS_KEY_MODEL = "rahamemo_model";
+  var LS_KEY_CURRENCY = "rahamemo_currency";
+  var LS_KEY_TX = "rahamemo_transactions";
+
+  var CATEGORIES = ["Groceries","Transport","Subscriptions","Dining","Shopping","Utilities","Health","Entertainment","Income","Transfer","Other"];
+
+  var els = {
+    apiKeyInput: document.getElementById("apiKeyInput"),
+    modelSelect: document.getElementById("modelSelect"),
+    currencyInput: document.getElementById("currencyInput"),
+    saveSettingsBtn: document.getElementById("saveSettingsBtn"),
+    forgetKeyBtn: document.getElementById("forgetKeyBtn"),
+    keyStatusTag: document.getElementById("keyStatusTag"),
+    settingsDetails: document.getElementById("settingsDetails"),
+    statementInput: document.getElementById("statementInput"),
+    parseBtn: document.getElementById("parseBtn"),
+    fileInput: document.getElementById("fileInput"),
+    parseStatus: document.getElementById("parseStatus"),
+    importBanner: document.getElementById("importBanner"),
+    ledgerBody: document.getElementById("ledgerBody"),
+    emptyState: document.getElementById("emptyState"),
+    ledgerTable: document.getElementById("ledgerTable"),
+    summaryWrap: document.getElementById("summaryWrap"),
+    addRowBtn: document.getElementById("addRowBtn"),
+    clearAllBtn: document.getElementById("clearAllBtn"),
+    privacyDot: document.getElementById("privacyDot")
+  };
+
+  // ---------- settings ----------
+  function loadSettings(){
+    return {
+      apiKey: localStorage.getItem(LS_KEY_API) || "",
+      model: localStorage.getItem(LS_KEY_MODEL) || "claude-opus-5",
+      currency: localStorage.getItem(LS_KEY_CURRENCY) || "€"
+    };
+  }
+  function saveSettings(){
+    var key = els.apiKeyInput.value.trim();
+    var model = els.modelSelect.value;
+    var currency = els.currencyInput.value.trim() || "€";
+    if(key) localStorage.setItem(LS_KEY_API, key);
+    localStorage.setItem(LS_KEY_MODEL, model);
+    localStorage.setItem(LS_KEY_CURRENCY, currency);
+    refreshKeyStatus();
+    renderLedger();
+  }
+  function forgetKey(){
+    localStorage.removeItem(LS_KEY_API);
+    els.apiKeyInput.value = "";
+    refreshKeyStatus();
+  }
+  function refreshKeyStatus(){
+    var s = loadSettings();
+    if(s.apiKey){
+      els.keyStatusTag.textContent = "saved";
+      els.settingsDetails.open = false;
+    } else {
+      els.keyStatusTag.textContent = "not set";
+      els.settingsDetails.open = true;
+    }
+  }
+  function initSettingsForm(){
+    var s = loadSettings();
+    els.apiKeyInput.value = s.apiKey;
+    els.modelSelect.value = s.model;
+    els.currencyInput.value = s.currency;
+    refreshKeyStatus();
+  }
+
+  // ---------- transactions store ----------
+  function loadTransactions(){
+    try{
+      var raw = localStorage.getItem(LS_KEY_TX);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
+  }
+  function saveTransactions(list){
+    localStorage.setItem(LS_KEY_TX, JSON.stringify(list));
+  }
+  function makeId(){
+    return "tx_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+  }
+
+  function txKey(t){
+    return [t.date, (t.merchant||"").toLowerCase().trim(), Number(t.amount).toFixed(2)].join("|");
+  }
+
+  function mergeTransactions(existing, incoming){
+    var seen = {};
+    existing.forEach(function(t){ seen[txKey(t)] = true; });
+    var added = 0;
+    incoming.forEach(function(t){
+      var k = txKey(t);
+      if(seen[k]) return;
+      seen[k] = true;
+      existing.push({
+        id: makeId(),
+        date: t.date || "",
+        merchant: t.merchant || "(unknown)",
+        category: CATEGORIES.indexOf(t.category) >= 0 ? t.category : "Other",
+        amount: Number(t.amount) || 0
+      });
+      added++;
+    });
+    return added;
+  }
+
+  // ---------- rendering ----------
+  function fmtAmount(n, currency){
+    var sign = n < 0 ? "−" : "";
+    return sign + currency + Math.abs(n).toFixed(2);
+  }
+
+  function renderSummary(list, currency){
+    if(!list.length){ els.summaryWrap.innerHTML = ""; return; }
+    var totalOut = 0, totalIn = 0;
+    var byCat = {};
+    list.forEach(function(t){
+      var amt = Number(t.amount) || 0;
+      if(amt < 0){ totalOut += amt; byCat[t.category] = (byCat[t.category]||0) + Math.abs(amt); }
+      else { totalIn += amt; }
+    });
+    var cats = Object.keys(byCat).sort(function(a,b){ return byCat[b]-byCat[a]; });
+    var maxCat = cats.length ? byCat[cats[0]] : 0;
+
+    var html = '<div class="summary-grid">' +
+      '<div class="stat-card"><div class="label">Transactions</div><div class="val">' + list.length + '</div></div>' +
+      '<div class="stat-card"><div class="label">Spent</div><div class="val">' + fmtAmount(-Math.abs(totalOut), currency) + '</div></div>' +
+      '<div class="stat-card"><div class="label">Received</div><div class="val">' + fmtAmount(totalIn, currency) + '</div></div>' +
+      '</div>';
+
+    if(cats.length){
+      html += '<div class="panel" style="margin-bottom:14px;">';
+      cats.forEach(function(c){
+        var pct = maxCat ? Math.round((byCat[c]/maxCat)*100) : 0;
+        html += '<div class="cat-bar-row">' +
+          '<span class="cat-name">' + escapeHtml(c) + '</span>' +
+          '<span class="cat-bar-track"><span class="cat-bar-fill" style="width:' + pct + '%;"></span></span>' +
+          '<span class="cat-bar-amt">' + fmtAmount(-byCat[c], currency) + '</span>' +
+          '</div>';
+      });
+      html += '</div>';
+    }
+    els.summaryWrap.innerHTML = html;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function renderLedger(){
+    var list = loadTransactions();
+    var s = loadSettings();
+    list.sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
+
+    renderSummary(list, s.currency);
+
+    els.ledgerBody.innerHTML = "";
+    els.emptyState.style.display = list.length ? "none" : "block";
+    els.ledgerTable.style.display = list.length ? "table" : "none";
+
+    list.forEach(function(t){
+      var tr = document.createElement("tr");
+      tr.dataset.id = t.id;
+
+      var tdDate = document.createElement("td");
+      var dateInput = document.createElement("input");
+      dateInput.type = "text"; dateInput.className = "cell-edit"; dateInput.value = t.date || "";
+      dateInput.addEventListener("change", function(){ updateField(t.id, "date", dateInput.value); });
+      tdDate.appendChild(dateInput);
+
+      var tdMerchant = document.createElement("td");
+      var merchInput = document.createElement("input");
+      merchInput.type = "text"; merchInput.className = "cell-edit"; merchInput.value = t.merchant || "";
+      merchInput.addEventListener("change", function(){ updateField(t.id, "merchant", merchInput.value); });
+      tdMerchant.appendChild(merchInput);
+
+      var tdCat = document.createElement("td");
+      var catSelect = document.createElement("select");
+      catSelect.className = "cell-edit";
+      CATEGORIES.forEach(function(c){
+        var opt = document.createElement("option");
+        opt.value = c; opt.textContent = c;
+        if(c === t.category) opt.selected = true;
+        catSelect.appendChild(opt);
+      });
+      catSelect.addEventListener("change", function(){ updateField(t.id, "category", catSelect.value); });
+      tdCat.appendChild(catSelect);
+
+      var tdAmount = document.createElement("td");
+      tdAmount.className = "amount " + (Number(t.amount) < 0 ? "neg" : "pos");
+      var amtInput = document.createElement("input");
+      amtInput.type = "text"; amtInput.className = "cell-edit amount-input";
+      amtInput.value = Number(t.amount).toFixed(2);
+      amtInput.addEventListener("change", function(){
+        var v = parseFloat(amtInput.value.replace(",", "."));
+        updateField(t.id, "amount", isNaN(v) ? 0 : v);
+      });
+      tdAmount.appendChild(amtInput);
+
+      var tdDel = document.createElement("td");
+      var delBtn = document.createElement("button");
+      delBtn.className = "row-del"; delBtn.title = "Delete"; delBtn.textContent = "✕";
+      delBtn.addEventListener("click", function(){ deleteRow(t.id); });
+      tdDel.appendChild(delBtn);
+
+      tr.appendChild(tdDate); tr.appendChild(tdMerchant); tr.appendChild(tdCat); tr.appendChild(tdAmount); tr.appendChild(tdDel);
+      els.ledgerBody.appendChild(tr);
+    });
+  }
+
+  function updateField(id, field, value){
+    var list = loadTransactions();
+    var idx = list.findIndex(function(t){ return t.id === id; });
+    if(idx === -1) return;
+    list[idx][field] = value;
+    saveTransactions(list);
+    renderLedger();
+  }
+
+  function deleteRow(id){
+    var list = loadTransactions().filter(function(t){ return t.id !== id; });
+    saveTransactions(list);
+    renderLedger();
+  }
+
+  function addManualRow(){
+    var list = loadTransactions();
+    list.push({ id: makeId(), date: new Date().toISOString().slice(0,10), merchant: "New transaction", category: "Other", amount: 0 });
+    saveTransactions(list);
+    renderLedger();
+  }
+
+  function clearAll(){
+    if(!confirm("Delete all locally stored transactions? This can't be undone.")) return;
+    localStorage.removeItem(LS_KEY_TX);
+    renderLedger();
+  }
+
+  // ---------- banners ----------
+  function showBanner(type, msg){
+    els.importBanner.innerHTML = '<div class="banner ' + type + '">' + escapeHtml(msg) + '</div>';
+  }
+  function clearBanner(){ els.importBanner.innerHTML = ""; }
+
+  // ---------- Claude API ----------
+  var TX_SCHEMA = {
+    type: "object",
+    properties: {
+      transactions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            date: { type: "string", description: "Transaction date as YYYY-MM-DD if the year is known, else DD-MM (best guess from context). Empty string if truly undeterminable." },
+            merchant: { type: "string", description: "Cleaned-up merchant or counterparty name, human-readable (not the raw bank code string)." },
+            amount: { type: "number", description: "Signed amount: negative for money out (debit/purchase), positive for money in (credit/income)." },
+            category: { type: "string", enum: CATEGORIES, description: "Best-fit spending category." }
+          },
+          required: ["date", "merchant", "amount", "category"],
+          additionalProperties: false
+        }
+      }
+    },
+    required: ["transactions"],
+    additionalProperties: false
+  };
+
+  function supportsThinkingControls(model){
+    return model === "claude-opus-5" || model === "claude-sonnet-5";
+  }
+
+  function buildRequestBody(model, statementText){
+    var body = {
+      model: model,
+      max_tokens: 8000,
+      system: "You extract and categorize transactions from raw bank statement export text. The input may be in any language or bank-specific format (e.g. Estonian 'MAKSEKORRALDUS', SWIFT-style codes, CSV rows). Extract every distinct transaction line you can find. Do not invent transactions that aren't in the text.",
+      messages: [
+        { role: "user", content: "Extract every transaction from this bank statement text:\n\n" + statementText }
+      ],
+      output_config: { format: { type: "json_schema", schema: TX_SCHEMA } }
+    };
+    if(supportsThinkingControls(model)){
+      body.thinking = { type: "disabled" };
+      body.output_config.effort = "low";
+    }
+    return body;
+  }
+
+  function parseStatement(){
+    var s = loadSettings();
+    var text = els.statementInput.value.trim();
+    clearBanner();
+
+    if(!s.apiKey){
+      showBanner("error", "Add your Anthropic API key above first.");
+      els.settingsDetails.open = true;
+      return;
+    }
+    if(!text){
+      showBanner("error", "Paste some statement text (or upload a file) first.");
+      return;
+    }
+
+    els.parseBtn.disabled = true;
+    els.parseStatus.innerHTML = '<span class="spinner"></span> Parsing…';
+
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": s.apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify(buildRequestBody(s.model, text))
+    })
+    .then(function(resp){
+      return resp.json().then(function(data){
+        if(!resp.ok){
+          var msg = (data && data.error && data.error.message) ? data.error.message : ("Request failed (" + resp.status + ")");
+          throw new Error(msg);
+        }
+        return data;
+      });
+    })
+    .then(function(data){
+      if(data.stop_reason === "refusal"){
+        throw new Error("The model declined to process this request.");
+      }
+      var textBlock = (data.content || []).find(function(b){ return b.type === "text"; });
+      if(!textBlock){
+        throw new Error("No text in the response — try again.");
+      }
+      var parsed;
+      try{
+        parsed = JSON.parse(textBlock.text);
+      }catch(e){
+        throw new Error("Couldn't parse the model's response as JSON.");
+      }
+      var txs = parsed.transactions || [];
+      if(!txs.length){
+        showBanner("info", "No transactions were found in that text.");
+        return;
+      }
+      var existing = loadTransactions();
+      var added = mergeTransactions(existing, txs);
+      saveTransactions(existing);
+      renderLedger();
+      var skipped = txs.length - added;
+      showBanner("success", "Added " + added + " transaction" + (added === 1 ? "" : "s") + (skipped ? (" (" + skipped + " duplicate" + (skipped === 1 ? "" : "s") + " skipped)") : "") + ".");
+      els.statementInput.value = "";
+    })
+    .catch(function(err){
+      showBanner("error", err.message || String(err));
+    })
+    .finally(function(){
+      els.parseBtn.disabled = false;
+      els.parseStatus.textContent = "";
+    });
+  }
+
+  function handleFileUpload(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt){
+      els.statementInput.value = evt.target.result;
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
+  // ---------- wire up ----------
+  els.saveSettingsBtn.addEventListener("click", saveSettings);
+  els.forgetKeyBtn.addEventListener("click", forgetKey);
+  els.parseBtn.addEventListener("click", parseStatement);
+  els.fileInput.addEventListener("change", handleFileUpload);
+  els.addRowBtn.addEventListener("click", addManualRow);
+  els.clearAllBtn.addEventListener("click", clearAll);
+
+  initSettingsForm();
+  renderLedger();
+})();
+</script>
+
+</body>
+</html>
