@@ -8,45 +8,50 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#F6F3EC;
-    --paper-line:#DCD6C6;
-    --ink:#211F1B;
-    --ink-soft:#5B564C;
-    --teal:#3F6659;
-    --teal-soft:#E4ECE7;
-    --amber:#C4863A;
-    --amber-soft:#F3E4CE;
+    --bg:#14171a;
+    --surface:#1b1f23;
+    --surface-2:#20252a;
+    --text:#e8ebee;
+    --text-soft:#a6aeb6;
+    --text-softer:#6a737c;
+    --divider:#343b42;
+    --accent:#7ea7cd;
+    --accent-200:#24354a;
+    --accent-700:#aac6e2;
+    --accent-800:#c6dbee;
+    --warn:#d9a05f;
+    --warn-soft:#3a2e1c;
     --radius:10px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--paper);
-    color:var(--ink);
+    background:var(--bg);
+    color:var(--text);
     font-family:'IBM Plex Sans', sans-serif;
     line-height:1.55;
     -webkit-font-smoothing:antialiased;
   }
-  ::selection{background:var(--amber-soft);}
+  ::selection{background:var(--accent-200);}
 
   .wrap{max-width:920px;margin:0 auto;padding:0 24px;}
 
   /* ---- top status strip ---- */
   .status-strip{
-    border-bottom:1px solid var(--paper-line);
-    background:#FBFAF6;
+    border-bottom:1px solid var(--divider);
+    background:var(--surface);
   }
   .status-strip .wrap{
     display:flex;align-items:center;justify-content:space-between;
     padding-top:14px;padding-bottom:14px;
     font-family:'IBM Plex Mono', monospace;
     font-size:12.5px;
-    color:var(--ink-soft);
+    color:var(--text-soft);
   }
   .status-dot{
     display:inline-block;width:7px;height:7px;border-radius:50%;
-    background:var(--amber);margin-right:8px;
-    box-shadow:0 0 0 3px var(--amber-soft);
+    background:var(--accent);margin-right:8px;
+    box-shadow:0 0 0 3px var(--accent-200);
   }
 
   /* ---- hero ---- */
@@ -54,7 +59,7 @@
   .eyebrow{
     font-family:'IBM Plex Mono', monospace;
     font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;
-    color:var(--teal);margin:0 0 18px;
+    color:var(--accent-700);margin:0 0 18px;
   }
   h1{
     font-family:'Newsreader', serif;
@@ -64,27 +69,26 @@
     margin:0 0 20px;
     max-width:16ch;
   }
-  h1 em{font-style:italic;color:var(--teal);}
+  h1 em{font-style:italic;color:var(--accent-700);}
   .lede{
     font-size:18px;
-    color:var(--ink-soft);
+    color:var(--text-soft);
     max-width:52ch;
     margin:0 0 34px;
   }
 
   /* ---- signature: live receipt-parse animation ---- */
   .parse-demo{
-    border:1px solid var(--paper-line);
-    background:#FFFFFF;
+    border:1px solid var(--divider);
+    background:var(--surface);
     border-radius:var(--radius);
     padding:22px 24px;
     max-width:560px;
     font-family:'IBM Plex Mono', monospace;
     font-size:13.5px;
-    box-shadow:0 1px 0 var(--paper-line);
   }
   .parse-demo .raw-line{
-    color:#9C968A;
+    color:var(--text-softer);
     white-space:pre;
     overflow:hidden;
     border-right:2px solid transparent;
@@ -95,15 +99,15 @@
     animation:reveal .5s ease forwards;
     animation-delay:2.6s;
   }
-  .parse-row .amount{font-weight:500;color:var(--ink);}
+  .parse-row .amount{font-weight:500;color:var(--text);}
   .tag{
     font-family:'IBM Plex Sans', sans-serif;
     font-size:11.5px;font-weight:500;
     padding:3px 9px;border-radius:999px;
-    background:var(--teal-soft);color:var(--teal);
+    background:var(--accent-200);color:var(--accent-800);
   }
   .parse-arrow{
-    font-size:11px;color:#B7B0A1;letter-spacing:.04em;
+    font-size:11px;color:var(--text-softer);letter-spacing:.04em;
     opacity:0;animation:reveal .4s ease forwards;animation-delay:2.3s;
     margin-top:10px;
   }
@@ -116,7 +120,7 @@
     display:inline-block;
     width:0;
     animation:type 2s steps(34, end) forwards;
-    border-right-color:#9C968A;
+    border-right-color:var(--text-softer);
     animation-fill-mode:forwards;
   }
   @keyframes type{
@@ -125,7 +129,7 @@
   }
 
   /* ---- section framing ---- */
-  section{padding:52px 0;border-top:1px solid var(--paper-line);}
+  section{padding:52px 0;border-top:1px solid var(--divider);}
   h2{
     font-family:'Newsreader', serif;
     font-weight:500;
@@ -137,29 +141,29 @@
   }
   .lead-line .num{
     font-family:'IBM Plex Mono', monospace;
-    font-size:12.5px;color:var(--ink-soft);
+    font-size:12.5px;color:var(--text-soft);
     padding-top:4px;
   }
 
   /* ---- what it does: ledger rows ---- */
-  .ledger{border-top:1px solid var(--paper-line);}
+  .ledger{border-top:1px solid var(--divider);}
   .ledger-row{
     display:grid;
     grid-template-columns:1fr auto;
     gap:6px 24px;
     padding:18px 0;
-    border-bottom:1px solid var(--paper-line);
+    border-bottom:1px solid var(--divider);
   }
   .ledger-row .what{font-weight:500;}
   .ledger-row .desc{
     grid-column:1 / -1;
-    color:var(--ink-soft);
+    color:var(--text-soft);
     font-size:15px;
     max-width:60ch;
   }
   .ledger-row .marker{
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;color:var(--teal);
+    font-size:12px;color:var(--accent-700);
     align-self:start;
   }
 
@@ -169,14 +173,14 @@
   }
   @media (max-width:640px){.stack-grid{grid-template-columns:1fr 1fr;}}
   .stack-card{
-    border:1px solid var(--paper-line);
-    background:#FBFAF6;
+    border:1px solid var(--divider);
+    background:var(--surface);
     border-radius:var(--radius);
     padding:16px 16px;
   }
   .stack-card .label{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;color:var(--ink-soft);
+    font-size:11px;color:var(--text-soft);
     text-transform:uppercase;letter-spacing:.04em;
     margin-bottom:6px;
   }
@@ -184,32 +188,33 @@
 
   /* ---- privacy note ---- */
   .note{
-    border-left:3px solid var(--amber);
-    background:var(--amber-soft);
+    border-left:3px solid var(--warn);
+    background:var(--warn-soft);
     padding:16px 20px;
     border-radius:0 var(--radius) var(--radius) 0;
     font-size:15px;
-    color:#5C4322;
+    color:#f0cd9e;
     max-width:60ch;
   }
 
   /* ---- footer ---- */
   footer{
     padding:44px 0 60px;
-    border-top:1px solid var(--paper-line);
+    border-top:1px solid var(--divider);
     font-family:'IBM Plex Mono', monospace;
     font-size:12.5px;
-    color:var(--ink-soft);
+    color:var(--text-soft);
     display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
   }
-  a{color:var(--teal);}
+  a{color:var(--accent-700);}
+  a:hover{color:var(--accent-800);}
 </style>
 </head>
 <body>
 
   <div class="status-strip">
     <div class="wrap">
-      <span><span class="status-dot"></span>In active development — not yet public</span>
+      <span><span class="status-dot"></span>Live — in active development</span>
       <span>Built by Olga Bestšastnaja</span>
     </div>
   </div>
@@ -246,7 +251,7 @@
         <div class="ledger-row">
           <span class="what">Statement parsing</span>
           <span class="marker">core</span>
-          <span class="desc">Upload a bank statement export and each line is read and structured — merchant, amount, and date pulled out of whatever format the bank exports.</span>
+          <span class="desc">Paste a bank statement export, or upload a screenshot or photo of one — each line is read and structured, merchant, amount, and date pulled out of whatever format the bank exports.</span>
         </div>
         <div class="ledger-row">
           <span class="what">Automatic categorization</span>
@@ -280,8 +285,9 @@
       </div>
       <p class="lede" style="max-width:60ch;margin-bottom:20px;">
         RahaMemo is a work in progress, built and iterated on outside of my day job.
-        Statement parsing and categorization work end-to-end; the rest of the app —
-        onboarding, editing categories, and multi-account support — is still being built out.
+        Statement parsing (text or screenshots), categorization, review-before-confirm,
+        budgets and category limits, onboarding, and editing categories all work
+        end-to-end. Multi-account support is still being built out.
       </p>
       <div class="note">
         Why this project exists: a decade in iGaming product ownership means I spend my
