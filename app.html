@@ -394,7 +394,8 @@
     importText: "",
     importLoading: false,
     importMsg: null,
-    limitsFocusCategory: null
+    limitsFocusCategory: null,
+    limitsBackTarget: null
   };
   var uploadedImages = [];   // {name, mediaType, data, previewUrl, status:'queued'|'read'}
   var pendingReview = [];    // {id, date, merchant, category, amount, uncertain, excluded}
@@ -783,6 +784,7 @@
     if(view !== "category") state.previousView = view;
     state.view = view;
     state.editingTxId = null;
+    state.limitsBackTarget = null;
     render();
     if(els.viewport) els.viewport.scrollTop = 0;
   }
@@ -794,10 +796,17 @@
   }
   function jumpToLimitsFocus(cat){
     state.limitsFocusCategory = cat;
+    state.limitsBackTarget = cat;
     state.view = "limits";
     render();
     var input = document.querySelector('[data-limit-input="' + cssEscape(cat) + '"]');
     if(input){ input.focus(); input.scrollIntoView({block:"center"}); }
+  }
+  function backFromLimits(){
+    var cat = state.limitsBackTarget;
+    state.limitsBackTarget = null;
+    if(cat) openCategory(cat);
+    else setView("overview");
   }
   function cssEscape(s){ return String(s).replace(/["\\]/g, "\\$&"); }
 
@@ -844,9 +853,9 @@
       });
     } else if(state.view === "limits"){
       html = appbarHtml({
-        left: iconBtn("menu", "openSettings", "Menu"),
+        left: state.limitsBackTarget ? iconBtn("back", "backFromLimits", "Back") : iconBtn("menu", "openSettings", "Menu"),
         title: "Limits",
-        sub: "Monthly budget & category caps",
+        sub: state.limitsBackTarget ? ("Back to " + state.limitsBackTarget) : "Monthly budget & category caps",
         right: ""
       });
     } else if(state.view === "import"){
@@ -1549,6 +1558,7 @@
     filterCat: function(btn){ state.ledgerFilter = btn.dataset.cat; renderLedgerView(); },
     openCategory: function(btn){ openCategory(btn.dataset.cat); },
     backCategory: function(){ setView(state.previousView); },
+    backFromLimits: function(){ backFromLimits(); },
     editFromCategory: function(){ jumpToLimitsFocus(state.category); },
     openTxEdit: function(btn){
       state.editingTxId = state.editingTxId === btn.dataset.id ? null : btn.dataset.id;
