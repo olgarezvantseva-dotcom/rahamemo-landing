@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://api.anthropic.com; base-uri 'self'; form-action 'none'; object-src 'none';">
 <title>RahaMemo — your ledger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -273,6 +274,11 @@
         <button class="btn btn-primary" id="saveSettingsBtn">Save</button>
         <button class="btn btn-ghost" id="forgetKeyBtn">Forget key</button>
       </div>
+      <div class="col" style="border-top:1px solid var(--divider);padding-top:14px;gap:8px;">
+        <span class="kq" style="color:var(--red);">Danger zone</span>
+        <p class="hint" style="margin-top:0;">Permanently delete every transaction, budget, limit, and custom category stored in this browser. Your API key and preferences are kept — use "Forget key" separately for that.</p>
+        <button class="btn btn-danger" id="clearAllBtn">Clear all data</button>
+      </div>
       <div class="settings-footer">
         <a href="#" id="replayOnboardLink">Replay setup guide</a>
         <a href="index.html">Back to the project page ↗</a>
@@ -426,6 +432,7 @@
       currencyInput: q("currencyInput"),
       saveSettingsBtn: q("saveSettingsBtn"),
       forgetKeyBtn: q("forgetKeyBtn"),
+      clearAllBtn: q("clearAllBtn"),
       keyStatusTag: q("keyStatusTag"),
       replayOnboardLink: q("replayOnboardLink"),
 
@@ -472,6 +479,22 @@
     localStorage.removeItem(LS_KEY_API);
     els.apiKeyInput.value = "";
     refreshKeyStatus();
+  }
+  function clearAllData(){
+    if(!confirm("Delete every transaction, budget, limit, and custom category stored in this browser? This can't be undone.")) return;
+    localStorage.removeItem(LS_KEY_TX);
+    localStorage.removeItem(LS_KEY_BUDGET);
+    localStorage.removeItem(LS_KEY_LIMITS);
+    localStorage.removeItem(LS_KEY_CATEGORIES);
+    CATEGORIES.length = 0;
+    DEFAULT_CATEGORIES.forEach(function(c){ CATEGORIES.push(c); });
+    pendingReview = [];
+    clearImages();
+    state.importText = "";
+    state.ledgerFilter = "All";
+    state.editingTxId = null;
+    closeSettings();
+    setView("overview");
   }
   function refreshKeyStatus(){
     var s = loadSettings();
@@ -1704,6 +1727,7 @@
     els.fileInput.addEventListener("change", handleFileUpload);
     els.saveSettingsBtn.addEventListener("click", saveSettings);
     els.forgetKeyBtn.addEventListener("click", forgetKey);
+    els.clearAllBtn.addEventListener("click", clearAllData);
     els.settingsCloseBtn.addEventListener("click", closeSettings);
     els.settingsOverlay.addEventListener("click", function(e){ if(e.target === els.settingsOverlay) closeSettings(); });
     els.replayOnboardLink.addEventListener("click", function(e){ e.preventDefault(); closeSettings(); onbOpen(); });
