@@ -29,4 +29,4 @@ Statement parsing (text and screenshots), categorization, review-before-confirm,
 
 ---
 
-Built by [Olga Bestšastnaja](https://www.linkedin.com/in/olgabest%C5%A1astnaja)
+Built by [Olga Bestšastnaja](https://www.linkedin.com/in/olga-best%C5%A1astnaja/)
