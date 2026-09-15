@@ -908,6 +908,18 @@
 
     var html = "";
 
+    if(!list.length){
+      html += '<div class="card blueprint">' + corners() +
+        '<div class="k">Get started</div>' +
+        '<h2 style="margin:2px 0 0;">Add your spending</h2>' +
+        '<p class="muted" style="font-size:13.5px;">Add a transaction by hand, or upload a screenshot of your bank statement and let Claude read and categorize it for you.</p>' +
+        '<div class="btn-row">' +
+          '<button type="button" class="btn btn-primary" data-action="quickAdd">+ Add manually</button>' +
+          '<button type="button" class="btn btn-secondary" data-action="nav" data-view="import">Upload a screenshot</button>' +
+        '</div>' +
+      '</div>';
+    }
+
     if(!budget){
       html += '<div class="card"><div class="k">No budget set</div><p class="muted" style="font-size:13.5px;">Set a monthly budget in the Limits tab to see what\'s left to spend and how your pace looks.</p><button type="button" class="btn btn-secondary" data-action="nav" data-view="limits" style="align-self:flex-start;">Set a budget →</button></div>';
     } else {
@@ -926,43 +938,45 @@
       '</div>';
     }
 
-    var days = dailySeries(list, mk, null);
-    var dim = daysInMonth(mk);
-    var isCurrent = mk === currentMonthKey();
-    var today = dayOfMonth();
-    var maxDay = Math.max.apply(null, Object.keys(days).map(function(k){ return days[k]; }).concat([1]));
-    var avgDay = monthSpendTotal(list, mk) / (isCurrent ? Math.max(today,1) : dim);
-    var bars = "";
-    for(var i = 1; i <= dim; i++){
-      var future = isCurrent && i > today;
-      var v = days[i] || 0;
-      var h = future ? 3 : (v === 0 ? 3 : Math.max(6, (v / maxDay) * 76));
-      bars += '<div class="bar' + (future ? " future" : (v > 0 ? " has" : "")) + '" style="height:' + h + 'px;"></div>';
-    }
-    html += '<div class="card blueprint">' + corners() +
-      '<div class="row between"><div class="kq">Daily spend</div><span class="mono" style="font-size:11px;color:var(--text-soft);">avg ' + fmtAmount(avgDay, currency) + '</span></div>' +
-      '<div class="sparkline">' + bars + '</div>' +
-      '<div class="row between" style="font-size:10.5px;color:var(--text-soft);"><span class="mono">1</span><span class="mono">' + (isCurrent ? "TODAY" : "") + '</span><span class="mono">' + dim + '</span></div>' +
-    '</div>';
-
-    var spendByCat = categorySpend(list, mk);
-    var catRows = CATEGORIES.filter(function(c){ return c !== "Transfer"; }).map(function(c){
-      var spent = spendByCat[c] || 0;
-      var limit = limits[c] || 0;
-      if(!spent && !limit) return "";
-      var pct = limit ? Math.min((spent/limit)*100, 100) : 0;
-      var warn = limit && (spent/limit) >= 0.85;
-      var right = limit ? ('<span class="mono" style="font-size:13px;">' + fmtAmount(spent, currency) + '</span><span class="mono" style="font-size:11.5px;color:var(--text-soft);"> / ' + fmtAmount(limit, currency) + '</span>')
-                         : '<span class="mono" style="font-size:13px;">' + fmtAmount(spent, currency) + '</span>';
-      return '<div class="cat-row" data-action="openCategory" data-cat="' + escapeHtml(c) + '">' +
-        '<div class="row between"><span style="font-size:14.5px;">' + escapeHtml(c) + '</span><span class="row" style="gap:6px;">' + right + '</span></div>' +
-        (limit ? '<div class="track"><div class="fill' + (warn ? " warn" : "") + '" style="width:' + pct + '%;"></div><div class="pace" style="left:' + Math.min(pace_pct(mk)*100,100) + '%;"></div></div>' : "") +
+    if(list.length){
+      var days = dailySeries(list, mk, null);
+      var dim = daysInMonth(mk);
+      var isCurrent = mk === currentMonthKey();
+      var today = dayOfMonth();
+      var maxDay = Math.max.apply(null, Object.keys(days).map(function(k){ return days[k]; }).concat([1]));
+      var avgDay = monthSpendTotal(list, mk) / (isCurrent ? Math.max(today,1) : dim);
+      var bars = "";
+      for(var i = 1; i <= dim; i++){
+        var future = isCurrent && i > today;
+        var v = days[i] || 0;
+        var h = future ? 3 : (v === 0 ? 3 : Math.max(6, (v / maxDay) * 76));
+        bars += '<div class="bar' + (future ? " future" : (v > 0 ? " has" : "")) + '" style="height:' + h + 'px;"></div>';
+      }
+      html += '<div class="card blueprint">' + corners() +
+        '<div class="row between"><div class="kq">Daily spend</div><span class="mono" style="font-size:11px;color:var(--text-soft);">avg ' + fmtAmount(avgDay, currency) + '</span></div>' +
+        '<div class="sparkline">' + bars + '</div>' +
+        '<div class="row between" style="font-size:10.5px;color:var(--text-soft);"><span class="mono">1</span><span class="mono">' + (isCurrent ? "TODAY" : "") + '</span><span class="mono">' + dim + '</span></div>' +
       '</div>';
-    }).join("");
-    html += '<div class="col">' +
-      '<div class="row between"><div class="kq">By category</div><a href="#" data-action="nav" data-view="limits" style="font-size:12px;">Limits</a></div>' +
-      (catRows ? '<div>' + catRows + '</div>' : '<div class="empty-state" style="padding:16px 4px;">No spending yet this month.</div>') +
-    '</div>';
+
+      var spendByCat = categorySpend(list, mk);
+      var catRows = CATEGORIES.filter(function(c){ return c !== "Transfer"; }).map(function(c){
+        var spent = spendByCat[c] || 0;
+        var limit = limits[c] || 0;
+        if(!spent && !limit) return "";
+        var pct = limit ? Math.min((spent/limit)*100, 100) : 0;
+        var warn = limit && (spent/limit) >= 0.85;
+        var right = limit ? ('<span class="mono" style="font-size:13px;">' + fmtAmount(spent, currency) + '</span><span class="mono" style="font-size:11.5px;color:var(--text-soft);"> / ' + fmtAmount(limit, currency) + '</span>')
+                           : '<span class="mono" style="font-size:13px;">' + fmtAmount(spent, currency) + '</span>';
+        return '<div class="cat-row" data-action="openCategory" data-cat="' + escapeHtml(c) + '">' +
+          '<div class="row between"><span style="font-size:14.5px;">' + escapeHtml(c) + '</span><span class="row" style="gap:6px;">' + right + '</span></div>' +
+          (limit ? '<div class="track"><div class="fill' + (warn ? " warn" : "") + '" style="width:' + pct + '%;"></div><div class="pace" style="left:' + Math.min(pace_pct(mk)*100,100) + '%;"></div></div>' : "") +
+        '</div>';
+      }).join("");
+      html += '<div class="col">' +
+        '<div class="row between"><div class="kq">By category</div><a href="#" data-action="nav" data-view="limits" style="font-size:12px;">Limits</a></div>' +
+        (catRows ? '<div>' + catRows + '</div>' : '<div class="empty-state" style="padding:16px 4px;">No spending yet this month.</div>') +
+      '</div>';
+    }
 
     var subs = subscriptionsList(list, mk);
     if(subs.length){
@@ -1280,6 +1294,9 @@
       var uncertainCount = pendingReview.filter(function(p){ return p.uncertain && !p.excluded; }).length;
       var transferCount = pendingReview.filter(function(p){ return p.category === "Transfer" && !p.excluded; }).length;
       var activeCount = pendingReview.filter(function(p){ return !p.excluded; }).length;
+      var newCatNames = pendingReview.filter(function(p){ return p.isNewCategory && !p.excluded; })
+        .map(function(p){ return p.category; })
+        .filter(function(c, i, arr){ return arr.indexOf(c) === i; });
 
       html += '<div class="card blueprint">' + corners() +
         '<div class="k">Ready to review</div>' +
@@ -1288,6 +1305,7 @@
           '<div><div class="fig" style="font-size:28px;">' + uncertainCount + '</div><div class="muted" style="font-size:11px;">need a check</div></div>' +
           '<div><div class="fig" style="font-size:28px;">' + transferCount + '</div><div class="muted" style="font-size:11px;">transfers</div></div>' +
         '</div>' +
+        (newCatNames.length ? '<div class="muted" style="font-size:12px;border-top:1px solid var(--divider);padding-top:8px;">New categories proposed: ' + newCatNames.map(escapeHtml).join(", ") + '. They\'ll be created when you confirm — change any row\'s category below first if you\'d rather use an existing one.</div>' : "") +
         '<div class="muted" style="font-size:12px;border-top:1px solid var(--divider);padding-top:8px;">Nothing enters the ledger until you confirm it below. Rows the parse was unsure of come first and are flagged.</div>' +
       '</div>';
 
@@ -1295,8 +1313,14 @@
       html += '<div class="col">' + sorted.map(function(p){
         if(p.excluded) return "";
         var opts = CATEGORIES.map(function(c){ return '<option value="' + escapeHtml(c) + '"' + (c===p.category?" selected":"") + '>' + escapeHtml(c) + '</option>'; }).join("");
+        if(p.isNewCategory){
+          opts = '<option value="' + escapeHtml(p.category) + '" selected>' + escapeHtml(p.category) + ' (new)</option>' + opts;
+        }
         return '<div class="review-row' + (p.uncertain ? " uncertain" : "") + '">' +
-          (p.uncertain ? '<span class="tag tag-warn" style="align-self:flex-start;">needs a check</span>' : "") +
+          '<div class="row" style="gap:6px;">' +
+            (p.uncertain ? '<span class="tag tag-warn">needs a check</span>' : "") +
+            (p.isNewCategory ? '<span class="tag tag-accent">new category</span>' : "") +
+          '</div>' +
           '<div class="review-grid">' +
             '<input type="text" data-review-field="date" data-review-id="' + p.id + '" value="' + escapeHtml(p.date) + '" placeholder="date">' +
             '<input type="text" data-review-field="merchant" data-review-id="' + p.id + '" value="' + escapeHtml(p.merchant) + '" placeholder="merchant">' +
@@ -1370,28 +1394,38 @@
   }
 
   // ---------- Claude API ----------
-  var TX_SCHEMA = {
-    type: "object",
-    properties: {
-      transactions: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            date: { type: "string", description: "Transaction date as YYYY-MM-DD if the year is known, else DD-MM (best guess from context). Empty string if truly undeterminable." },
-            merchant: { type: "string", description: "Cleaned-up merchant or counterparty name, human-readable (not the raw bank code string)." },
-            amount: { type: "number", description: "Signed amount: negative for money out (debit/purchase), positive for money in (credit/income)." },
-            category: { type: "string", enum: CATEGORIES, description: "Best-fit spending category." },
-            uncertain: { type: "boolean", description: "True if the date, merchant, amount, or category could not be determined with reasonable confidence; false otherwise." }
-          },
-          required: ["date", "merchant", "amount", "category", "uncertain"],
-          additionalProperties: false
+  function categoriesAreDefault(){
+    if(CATEGORIES.length !== DEFAULT_CATEGORIES.length) return false;
+    return DEFAULT_CATEGORIES.every(function(c){ return CATEGORIES.indexOf(c) >= 0; });
+  }
+
+  function buildTxSchema(freeformCategories){
+    var categoryField = freeformCategories
+      ? { type: "string", description: "A short (1-2 word) Title Case category name that best fits this transaction, based on what you actually see in the statement (e.g. 'Groceries', 'Rideshare', 'Streaming') rather than a generic fixed list. Reuse the exact same name for every transaction of the same kind — do not invent near-duplicate variants." }
+      : { type: "string", enum: CATEGORIES, description: "Best-fit spending category." };
+    return {
+      type: "object",
+      properties: {
+        transactions: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              date: { type: "string", description: "Transaction date as YYYY-MM-DD if the year is known, else DD-MM (best guess from context). Empty string if truly undeterminable." },
+              merchant: { type: "string", description: "Cleaned-up merchant or counterparty name, human-readable (not the raw bank code string)." },
+              amount: { type: "number", description: "Signed amount: negative for money out (debit/purchase), positive for money in (credit/income)." },
+              category: categoryField,
+              uncertain: { type: "boolean", description: "True if the date, merchant, amount, or category could not be determined with reasonable confidence; false otherwise." }
+            },
+            required: ["date", "merchant", "amount", "category", "uncertain"],
+            additionalProperties: false
+          }
         }
-      }
-    },
-    required: ["transactions"],
-    additionalProperties: false
-  };
+      },
+      required: ["transactions"],
+      additionalProperties: false
+    };
+  }
 
   function supportsThinkingControls(model){
     return model === "claude-opus-5" || model === "claude-sonnet-5";
@@ -1407,14 +1441,20 @@
       : "Extract every transaction from this bank statement text:\n\n" + statementText;
     content.push({ type: "text", text: instruction });
 
+    var freeform = categoriesAreDefault();
+    var systemPrompt = "You extract and categorize transactions from a bank statement, provided either as raw export text or as an image (screenshot or photo) of a statement. The input may be in any language or bank-specific format (e.g. Estonian 'MAKSEKORRALDUS', SWIFT-style codes, CSV rows, or a photographed/screenshotted table). Extract every distinct transaction you can find. Do not invent transactions that aren't present. Set uncertain:true on any row where you had to guess at the date, amount, merchant, or category.";
+    if(freeform){
+      systemPrompt += " The user hasn't customized their spending categories yet, so propose your own concise category names tailored to what's actually in this statement instead of forcing a generic list — but always use 'Transfer' for transfers between the user's own accounts, and 'Income' for money coming in.";
+    }
+
     var body = {
       model: model,
       max_tokens: 8000,
-      system: "You extract and categorize transactions from a bank statement, provided either as raw export text or as an image (screenshot or photo) of a statement. The input may be in any language or bank-specific format (e.g. Estonian 'MAKSEKORRALDUS', SWIFT-style codes, CSV rows, or a photographed/screenshotted table). Extract every distinct transaction you can find. Do not invent transactions that aren't present. Set uncertain:true on any row where you had to guess at the date, amount, merchant, or category.",
+      system: systemPrompt,
       messages: [
         { role: "user", content: content }
       ],
-      output_config: { format: { type: "json_schema", schema: TX_SCHEMA } }
+      output_config: { format: { type: "json_schema", schema: buildTxSchema(freeform) } }
     };
     if(supportsThinkingControls(model)){
       body.thinking = { type: "disabled" };
@@ -1441,6 +1481,8 @@
     state.importLoading = true;
     state.importMsg = null;
     renderImportDynamic();
+
+    var wasFreeform = categoriesAreDefault();
 
     return fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -1483,18 +1525,27 @@
         state.importMsg = { type: "info", text: "No transactions were found in that input." };
       } else {
         var mapped = txs.map(function(t){
+          var rawCat = (t.category || "").trim().slice(0, 24);
+          var known = CATEGORIES.indexOf(rawCat) >= 0;
+          var category = known ? rawCat : (wasFreeform && rawCat ? rawCat : "Other");
           return {
             id: makeId("pend"),
             date: t.date || "",
             merchant: t.merchant || "(unknown)",
-            category: CATEGORIES.indexOf(t.category) >= 0 ? t.category : "Other",
+            category: category,
+            isNewCategory: !known && category !== "Other",
             amount: Number(t.amount) || 0,
             uncertain: !!t.uncertain,
             excluded: false
           };
         });
         pendingReview = pendingReview.concat(mapped);
-        state.importMsg = { type: "success", text: "Read " + txs.length + " transaction" + (txs.length===1?"":"s") + ". Review below before confirming." };
+        var newCats = mapped.filter(function(p){ return p.isNewCategory; })
+          .map(function(p){ return p.category; })
+          .filter(function(c, i, arr){ return arr.indexOf(c) === i; });
+        var msg = "Read " + txs.length + " transaction" + (txs.length===1?"":"s") + ". Review below before confirming.";
+        if(newCats.length) msg += " Proposed new categories: " + newCats.join(", ") + ".";
+        state.importMsg = { type: "success", text: msg };
       }
       renderImportView();
       return { ok: true, count: txs.length };
@@ -1512,10 +1563,17 @@
     renderImportDynamic();
   }
   function confirmReview(){
-    var toAdd = pendingReview.filter(function(p){ return !p.excluded; }).map(function(p){
+    var surviving = pendingReview.filter(function(p){ return !p.excluded; });
+    var toAdd = surviving.map(function(p){
       return { date: p.date, merchant: p.merchant, category: p.category, amount: p.amount };
     });
     if(!toAdd.length) return;
+
+    surviving.filter(function(p){ return p.isNewCategory; })
+      .map(function(p){ return p.category; })
+      .filter(function(c, i, arr){ return arr.indexOf(c) === i; })
+      .forEach(function(name){ if(CATEGORIES.indexOf(name) === -1) addCategory(name); });
+
     var existing = loadTransactions();
     var added = mergeTransactions(existing, toAdd);
     saveTransactions(existing);
@@ -1613,7 +1671,10 @@
         rv = isNaN(rn) ? 0 : rn;
       }
       p[rf] = rv;
-      if(rf === "category") renderImportDynamic();
+      if(rf === "category"){
+        p.isNewCategory = CATEGORIES.indexOf(rv) === -1;
+        renderImportDynamic();
+      }
       return;
     }
   });
