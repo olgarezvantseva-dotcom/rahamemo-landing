@@ -203,6 +203,23 @@
   .settings-panel{width:min(360px, 90vw);height:100%;background:var(--surface);border-left:1px solid var(--divider);padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;}
   .settings-footer{display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid var(--divider);font-size:12.5px;color:var(--text-soft);}
 
+  .menu-row{
+    display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+    width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--divider);
+    border-radius:8px;padding:14px 16px;cursor:pointer;
+  }
+  .menu-row:hover{border-color:var(--accent);}
+  .menu-row-title{font-size:15px;font-weight:500;color:var(--text);}
+  .menu-row-sub{font-size:12px;color:var(--text-soft);}
+
+  .qa-entry{border:1px solid var(--divider);border-radius:8px;padding:10px 14px;}
+  .qa-entry summary{cursor:pointer;font-size:13.5px;font-weight:500;list-style:none;color:var(--text);text-transform:none;letter-spacing:normal;font-family:'IBM Plex Sans', sans-serif;}
+  .qa-entry summary::-webkit-details-marker{display:none;}
+  .qa-entry summary::before{content:"+ ";color:var(--accent-700);}
+  .qa-entry[open] summary::before{content:"– ";}
+  .qa-entry p{margin:8px 0 0;font-size:13px;color:var(--text-soft);}
+  .qa-entry code{font-family:'IBM Plex Mono', monospace;background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:12px;}
+
   .onboard-overlay{align-items:center;justify-content:center;background:rgba(0,0,0,.65);padding:20px;}
   .onboard-modal{background:var(--surface);border:1px solid var(--divider);border-radius:var(--radius);max-width:440px;width:100%;padding:26px 26px 22px;display:flex;flex-direction:column;gap:16px;max-height:90vh;overflow-y:auto;}
   .onboard-step{display:none;flex-direction:column;gap:14px;}
@@ -282,6 +299,62 @@
         <a href="#" id="replayOnboardLink">Replay setup guide</a>
         <a href="index.html">Back to the project page ↗</a>
         <span>RahaMemo runs entirely client-side.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay settings-overlay hidden" id="menuOverlay">
+    <div class="settings-panel" style="gap:10px;">
+      <div class="row between">
+        <div class="k">Menu</div>
+        <button class="icon-btn" id="menuCloseBtn" aria-label="Close">✕</button>
+      </div>
+      <button type="button" class="menu-row" data-action="openSettingsFromMenu">
+        <span class="menu-row-title">Settings</span>
+        <span class="menu-row-sub">API key, model, currency, data</span>
+      </button>
+      <button type="button" class="menu-row" data-action="openQAFromMenu">
+        <span class="menu-row-title">Q&amp;A</span>
+        <span class="menu-row-sub">Troubleshooting &amp; common questions</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="overlay settings-overlay hidden" id="qaOverlay">
+    <div class="settings-panel">
+      <div class="row between">
+        <div class="k">Q&amp;A</div>
+        <button class="icon-btn" id="qaCloseBtn" aria-label="Close">✕</button>
+      </div>
+      <div class="col" style="gap:10px;">
+        <details class="qa-entry">
+          <summary>Which API key do I use — the one starting "sk-ant-" or "apikey_"?</summary>
+          <p>Use the one starting with <code>sk-ant-</code> — that's the actual secret. The <code>apikey_</code> value is just that key's ID, shown for reference in the console; it isn't a valid credential and will fail with "invalid x-api-key" if pasted here.</p>
+        </details>
+        <details class="qa-entry">
+          <summary>It says "invalid x-api-key" — what's wrong?</summary>
+          <p>Usually one of: you pasted the <code>apikey_</code> ID instead of the <code>sk-ant-</code> secret (see above), the copy was incomplete, or the key was revoked. Anthropic only shows a key's full secret once, right when it's created — if you didn't copy it then, create a new key and copy it immediately when it appears.</p>
+        </details>
+        <details class="qa-entry">
+          <summary>It says "No transactions found" — is something broken?</summary>
+          <p>No — that means the request worked and Claude looked at your text, it just didn't find anything that looked like transaction lines. During setup, try "Use example text" first, or paste a few real transaction lines from a statement.</p>
+        </details>
+        <details class="qa-entry">
+          <summary>Do I need a Claude.ai subscription?</summary>
+          <p>No. The Claude.ai chat subscription and API access are separate products with separate billing. You just need a free account at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> with a payment method attached.</p>
+        </details>
+        <details class="qa-entry">
+          <summary>How much does parsing a statement cost?</summary>
+          <p>A few cents at most. The API bills per token, not a subscription — a typical statement (20–30 transactions) runs roughly $0.01–$0.05 depending on which model you pick in Settings. Haiku is cheapest, Opus is most capable.</p>
+        </details>
+        <details class="qa-entry">
+          <summary>How do I delete a transaction?</summary>
+          <p>Go to the Ledger tab and tap any row — an edit panel opens below it with a red Delete button.</p>
+        </details>
+        <details class="qa-entry">
+          <summary>Is my data private?</summary>
+          <p>Yes — RahaMemo has no backend or database. Everything is stored only in this browser's localStorage. Statement text or screenshots go straight from your browser to Anthropic's API using your own key, and nowhere else.</p>
+        </details>
       </div>
     </div>
   </div>
@@ -426,6 +499,10 @@
 
       settingsOverlay: q("settingsOverlay"),
       settingsCloseBtn: q("settingsCloseBtn"),
+      menuOverlay: q("menuOverlay"),
+      menuCloseBtn: q("menuCloseBtn"),
+      qaOverlay: q("qaOverlay"),
+      qaCloseBtn: q("qaCloseBtn"),
       apiKeyInput: q("apiKeyInput"),
       modelSelect: q("modelSelect"),
       currencyInput: q("currencyInput"),
@@ -860,7 +937,7 @@
     var html = "";
     if(state.view === "overview"){
       html = appbarHtml({
-        left: iconBtn("menu", "openSettings", "Menu"),
+        left: iconBtn("menu", "openMenu", "Menu"),
         title: "Overview",
         sub: "Day " + dayOfMonth() + " of " + daysInMonth(mk),
         right: '<button type="button" class="btn btn-secondary" data-action="quickAdd" style="min-height:36px;">+ Add</button>'
@@ -868,14 +945,14 @@
     } else if(state.view === "ledger"){
       var count = list.filter(function(t){ return monthKeyOf(t.date) === mk; }).length;
       html = appbarHtml({
-        left: iconBtn("menu", "openSettings", "Menu"),
+        left: iconBtn("menu", "openMenu", "Menu"),
         title: "Transactions",
         sub: count + " this month",
         right: iconBtn("search", "toggleSearch", "Search")
       });
     } else if(state.view === "limits"){
       html = appbarHtml({
-        left: state.limitsBackTarget ? iconBtn("back", "backFromLimits", "Back") : iconBtn("menu", "openSettings", "Menu"),
+        left: state.limitsBackTarget ? iconBtn("back", "backFromLimits", "Back") : iconBtn("menu", "openMenu", "Menu"),
         title: "Limits",
         sub: state.limitsBackTarget ? ("Back to " + state.limitsBackTarget) : "Monthly budget & category caps",
         right: ""
@@ -883,7 +960,7 @@
     } else if(state.view === "import"){
       var n = uploadedImages.length;
       html = appbarHtml({
-        left: iconBtn("menu", "openSettings", "Menu"),
+        left: iconBtn("menu", "openMenu", "Menu"),
         title: "Import",
         sub: n ? (n + " screenshot" + (n === 1 ? "" : "s") + " queued") : "Paste or upload a statement",
         right: ""
@@ -1617,11 +1694,20 @@
   // ---------- settings overlay ----------
   function openSettings(){ els.settingsOverlay.classList.remove("hidden"); }
   function closeSettings(){ els.settingsOverlay.classList.add("hidden"); }
+  function openMenu(){ els.menuOverlay.classList.remove("hidden"); }
+  function closeMenu(){ els.menuOverlay.classList.add("hidden"); }
+  function openQA(){ els.qaOverlay.classList.remove("hidden"); }
+  function closeQA(){ els.qaOverlay.classList.add("hidden"); }
 
   // ---------- action dispatch (event delegation) ----------
   var actions = {
     nav: function(btn){ setView(btn.dataset.view); },
     openSettings: function(){ openSettings(); },
+    openMenu: function(){ openMenu(); },
+    closeMenu: function(){ closeMenu(); },
+    openSettingsFromMenu: function(){ closeMenu(); openSettings(); },
+    openQAFromMenu: function(){ closeMenu(); openQA(); },
+    closeQA: function(){ closeQA(); },
     closeSettings: function(){ closeSettings(); },
     quickAdd: function(){
       var id = addManualRow();
@@ -1729,6 +1815,10 @@
     els.clearAllBtn.addEventListener("click", clearAllData);
     els.settingsCloseBtn.addEventListener("click", closeSettings);
     els.settingsOverlay.addEventListener("click", function(e){ if(e.target === els.settingsOverlay) closeSettings(); });
+    els.menuCloseBtn.addEventListener("click", closeMenu);
+    els.menuOverlay.addEventListener("click", function(e){ if(e.target === els.menuOverlay) closeMenu(); });
+    els.qaCloseBtn.addEventListener("click", closeQA);
+    els.qaOverlay.addEventListener("click", function(e){ if(e.target === els.qaOverlay) closeQA(); });
     els.replayOnboardLink.addEventListener("click", function(e){ e.preventDefault(); closeSettings(); onbOpen(); });
 
     initSettingsForm();
