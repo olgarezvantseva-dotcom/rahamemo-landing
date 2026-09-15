@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="stylesheet" href="_ds/industry-334a5991-091c-4fba-83b1-ee0e7432fe87/styles.css" />
+<script src="_ds/industry-334a5991-091c-4fba-83b1-ee0e7432fe87/_ds_bundle.js"></script>
+<style>
+  body { background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); margin: 0; }
+  a { color: var(--color-accent-700); }
+  a:hover { color: var(--color-accent-800); }
+  .scr { width: 390px; background: var(--color-bg); display: flex; flex-direction: column; }
+  .sb { display: flex; justify-content: space-between; align-items: center; padding: 9px 16px 3px; font-family: var(--font-heading); font-size: 12px; color: var(--color-neutral-600); }
+  .appbar { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4) var(--space-3); border-bottom: 1px solid var(--color-divider); }
+  .body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
+  .k { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--color-accent-700); }
+  .kq { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--color-neutral-700); }
+  .fig { font-family: var(--font-heading); line-height: 1; letter-spacing: -.02em; }
+  .track { height: 6px; background: var(--color-neutral-300); position: relative; }
+  .fill { height: 100%; background: var(--color-accent); }
+  .pace { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--color-neutral-800); }
+  .row { display: flex; align-items: center; gap: var(--space-3); }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .tab { flex: 1; min-height: 56px; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-family: var(--font-heading); letter-spacing: .06em; text-transform: uppercase; }
+  .frame { position: relative; border: 1px solid var(--color-divider); }
+  .plate { display: flex; flex-direction: column; gap: var(--space-4); width: 390px; }
+  .dark {
+    --color-bg: #14171a; --color-surface: #1b1f23; --color-text: #e8ebee;
+    --color-divider: #343b42;
+    --color-neutral-100: #20252a; --color-neutral-200: #262c31; --color-neutral-300: #343b42;
+    --color-neutral-400: #49515a; --color-neutral-500: #6a737c; --color-neutral-600: #8b949d;
+    --color-neutral-700: #a6aeb6; --color-neutral-800: #c8ced4; --color-neutral-900: #e8ebee;
+    --color-accent: #7ea7cd;
+    --color-accent-100: #1d2836; --color-accent-200: #24354a; --color-accent-300: #34506d;
+    --color-accent-400: #4a6d90; --color-accent-500: #6a8fb4; --color-accent-600: #93b6d8;
+    --color-accent-700: #aac6e2; --color-accent-800: #c6dbee; --color-accent-900: #e2edf7;
+    background: var(--color-bg); color: var(--color-text);
+  }
+  .dark a { color: var(--color-accent-700); }
+  .dark a:hover { color: var(--color-accent-800); }
+</style>
+</helmet>
+
+<section class="{{ themeCls }}" style="padding:48px 40px 90px;display:flex;flex-direction:column;gap:44px">
+
+  <div style="max-width:720px;display:flex;flex-direction:column;gap:var(--space-3)">
+    <div class="k">Turn 1 · RahaMemo · phone</div>
+    <h1 style="margin:0;font-size:46px">Spending tracker with category limits</h1>
+    <p style="font-size:16px;margin:0;text-wrap:pretty">March 2026, day 17 of 31, spending on pace. <a href="#1b">1b</a> is the overview, <a href="#1c">1c</a> the screenshot import, <a href="#1d">1d</a> the ledger and <a href="#1e">1e</a> a single category against its limits.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+    <div class="kq">Overview</div>
+    <div style="display:flex;flex-wrap:wrap;gap:60px;align-items:flex-start">
+
+      <div id="1b" class="plate">
+        <div style="display:flex;gap:var(--space-3);align-items:flex-start">
+          <span class="tag tag-outline" style="flex:none;margin-top:4px">1b</span>
+          <div>
+            <div style="font-family:var(--font-heading);font-size:23px;line-height:1.1">Overview</div>
+            <div style="font-size:13px;color:var(--color-neutral-700)">What's left to spend, the month's pace, and every category against its limit.</div>
+          </div>
+        </div>
+
+        <div class="scr blueprint">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="sb"><span>9:41</span><span>MARCH 2026</span></div>
+          <div class="appbar">
+            <button class="btn" style="border-color:transparent;width:36px;height:36px;padding:0" aria-label="Open menu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+            </button>
+            <div style="margin-right:auto">
+              <div style="font-family:var(--font-heading);font-size:17px;line-height:1.15">Overview</div>
+              <div style="font-size:11px;color:var(--color-neutral-700)">Day 17 of 31</div>
+            </div>
+            <button class="btn btn-secondary" style="min-height:36px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>Add
+            </button>
+          </div>
+
+          <div class="body">
+            <div class="card blueprint">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="k">Left to spend this month</div>
+              <div style="display:flex;align-items:flex-end;gap:var(--space-3)">
+                <div class="fig" style="font-size:54px">{{ leftToSpend }}</div>
+                <div style="padding-bottom:9px;font-size:13px;line-height:1.35">
+                  <div style="color:var(--color-neutral-700)">{{ perDayLeft }} a day</div>
+                </div>
+              </div>
+              <div class="row" style="justify-content:space-between;font-size:11.5px">
+                <span>{{ spent }} spent · <span style="color:var(--color-neutral-700)">{{ underPace }} under pace</span></span>
+                <span class="mono" style="color:var(--color-neutral-700)">14 days left</span>
+              </div>
+            </div>
+
+            <div class="card blueprint">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="row" style="justify-content:space-between">
+                <div class="kq">Daily spend</div>
+                <span class="mono" style="font-size:11px;color:var(--color-neutral-700)">avg {{ avgDay }}</span>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:2px;height:76px">
+                <sc-for list="{{ days }}" as="d" hint-placeholder-count="31">
+                  <div style="flex:1;height:{{ d.h }};background:{{ d.bg }};min-height:1px"></div>
+                </sc-for>
+              </div>
+              <div class="row" style="justify-content:space-between;font-size:10.5px;color:var(--color-neutral-700)">
+                <span class="mono">1 MAR</span><span class="mono">TODAY</span><span class="mono">31 MAR</span>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+              <div class="row" style="justify-content:space-between">
+                <div class="kq">By category</div>
+                <a href="#1e" style="font-size:12px;text-decoration:none">Limits</a>
+              </div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ cats }}" as="c" hint-placeholder-count="8">
+                  <a href="#1e" style="display:flex;flex-direction:column;gap:7px;padding:var(--space-3) 0;border-bottom:1px solid var(--color-neutral-300);text-decoration:none;color:inherit;min-height:56px;justify-content:center">
+                    <div class="row" style="justify-content:space-between">
+                      <span style="font-size:14.5px">{{ c.name }}</span>
+                      <span class="row" style="gap:6px">
+                        <span class="mono" style="font-size:13px">{{ c.spent }}</span>
+                        <span class="mono" style="font-size:11.5px;color:var(--color-neutral-700)">/ {{ c.limit }}</span>
+                      </span>
+                    </div>
+                    <div class="track" style="height:4px">
+                      <div class="fill" style="width:{{ c.pct }};background:{{ c.color }}"></div>
+                      <div class="pace" style="left:{{ pacePct }}"></div>
+                    </div>
+                  </a>
+                </sc-for>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="kq">Recurring, detected</div>
+              <sc-for list="{{ subs }}" as="s" hint-placeholder-count="5">
+                <div class="row" style="justify-content:space-between;font-size:13.5px">
+                  <span>{{ s.name }}</span>
+                  <span class="row" style="gap:var(--space-2)"><span style="font-size:11px;color:var(--color-neutral-700)">{{ s.day }}</span><span class="mono">{{ s.amt }}</span></span>
+                </div>
+              </sc-for>
+              <div class="row" style="justify-content:space-between;border-top:1px solid var(--color-divider);padding-top:var(--space-2);font-size:13px">
+                <span style="color:var(--color-neutral-700)">5 charges every month</span><span class="mono">{{ subsTotal }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;border-top:1px solid var(--color-divider)">
+            <sc-for list="{{ tabsHome }}" as="t" hint-placeholder-count="4">
+              <div class="tab" style="color:{{ t.color }};border-top:2px solid {{ t.mark }}">{{ t.name }}</div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+    <div class="kq">Detail screens</div>
+    <div style="display:flex;flex-wrap:wrap;gap:60px;align-items:flex-start">
+
+      <div id="1c" class="plate">
+        <div style="display:flex;gap:var(--space-3);align-items:flex-start">
+          <span class="tag tag-outline" style="flex:none;margin-top:4px">1c</span>
+          <div>
+            <div style="font-family:var(--font-heading);font-size:23px;line-height:1.1">Import screenshots</div>
+            <div style="font-size:13px;color:var(--color-neutral-700)">Several shots per statement, parsed then held for review.</div>
+          </div>
+        </div>
+
+        <div class="scr blueprint">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="sb"><span>9:41</span><span>MARCH 2026</span></div>
+          <div class="appbar">
+            <button class="btn" style="border-color:transparent;width:36px;height:36px;padding:0" aria-label="Open menu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+            </button>
+            <div style="margin-right:auto">
+              <div style="font-family:var(--font-heading);font-size:17px;line-height:1.15">Import</div>
+              <div style="font-size:11px;color:var(--color-neutral-700)">3 screenshots queued</div>
+            </div>
+          </div>
+
+          <div class="body">
+            <p style="font-size:14px;margin:0;text-wrap:pretty">Screenshot your bank's transaction list — as many shots as the month takes. Each image is read once, then dropped. Only the rows are kept.</p>
+
+            <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+              <div class="kq">Account</div>
+              <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+                <sc-for list="{{ accounts }}" as="a" hint-placeholder-count="4">
+                  <span class="tag {{ a.cls }}" style="padding:7px 12px;font-size:11.5px">{{ a.name }}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+              <sc-for list="{{ shots }}" as="s" hint-placeholder-count="3">
+                <div class="card" style="flex-direction:row;align-items:center;gap:var(--space-3);padding:var(--space-2)">
+                  <div class="frame" style="width:46px;height:62px;flex:none;display:flex;align-items:center;justify-content:center;background-image:{{ s.thumb }}">
+                    <span class="mono" style="font-size:15px;color:var(--color-neutral-500)">{{ s.mark }}</span>
+                  </div>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                    <div class="mono" style="font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.file }}</div>
+                    <div style="font-size:11.5px;color:var(--color-neutral-700)">{{ s.meta }}</div>
+                  </div>
+                  <span class="tag {{ s.cls }}" style="flex:none">{{ s.status }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div class="frame" style="padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;align-items:center;gap:var(--space-2);border-style:dashed;text-align:center;min-height:56px">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-accent)"><rect x="3" y="3" width="18" height="18" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
+              <div style="font-family:var(--font-heading);font-size:16px">Add another screenshot</div>
+              <div class="mono" style="font-size:11px;color:var(--color-neutral-700)">photo library · camera · files</div>
+            </div>
+
+            <div class="card blueprint">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="k">Read from 3 shots</div>
+              <div class="row" style="gap:var(--space-8);align-items:flex-end">
+                <div><div class="fig" style="font-size:32px">34</div><div style="font-size:11px;color:var(--color-neutral-700)">transactions</div></div>
+                <div><div class="fig" style="font-size:32px">6</div><div style="font-size:11px;color:var(--color-neutral-700)">need a check</div></div>
+                <div><div class="fig" style="font-size:32px">2</div><div style="font-size:11px;color:var(--color-neutral-700)">transfers</div></div>
+              </div>
+              <div style="font-size:12px;color:var(--color-neutral-700);border-top:1px solid var(--color-divider);padding-top:var(--space-2);text-wrap:pretty">Nothing enters the ledger until you confirm it. Rows the parse was unsure of come first in the review list; transfers between your own accounts are excluded from spending.</div>
+              <div style="font-size:12px;color:var(--color-neutral-700);border-top:1px solid var(--color-divider);padding-top:var(--space-2);text-wrap:pretty">An image is held in memory only while it is being read, then discarded — not written to this device, not kept on any server. Re-importing a month means taking the screenshots again.</div>
+            </div>
+
+            <button class="btn btn-primary blueprint" style="min-height:48px;font-size:15px;width:100%;margin:0">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              Review 34 transactions
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </button>
+            <div style="font-size:11px;color:var(--color-neutral-700);text-align:center">No screenshot is stored. Reviewing keeps the rows, not the picture.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="1d" class="plate">
+        <div style="display:flex;gap:var(--space-3);align-items:flex-start">
+          <span class="tag tag-outline" style="flex:none;margin-top:4px">1d</span>
+          <div>
+            <div style="font-family:var(--font-heading);font-size:23px;line-height:1.1">Transactions</div>
+            <div style="font-size:13px;color:var(--color-neutral-700)">The ledger, grouped by day, filterable by category.</div>
+          </div>
+        </div>
+
+        <div class="scr blueprint">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="sb"><span>9:41</span><span>MARCH 2026</span></div>
+          <div class="appbar">
+            <button class="btn" style="border-color:transparent;width:36px;height:36px;padding:0" aria-label="Open menu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+            </button>
+            <div style="margin-right:auto">
+              <div style="font-family:var(--font-heading);font-size:17px;line-height:1.15">Transactions</div>
+              <div style="font-size:11px;color:var(--color-neutral-700)">34 this month</div>
+            </div>
+            <button class="btn" style="border-color:transparent;width:36px;height:36px;padding:0" aria-label="Search">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.6-3.6" /></svg>
+            </button>
+          </div>
+
+          <div style="display:flex;gap:var(--space-2);padding:var(--space-3) var(--space-4);overflow:hidden;border-bottom:1px solid var(--color-divider)">
+            <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+              <span class="tag {{ f.cls }}" style="flex:none;white-space:nowrap;padding:7px 11px;font-size:11.5px">{{ f.name }}</span>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+              <div>
+                <div class="row" style="justify-content:space-between;padding:var(--space-2) var(--space-4);background:var(--color-neutral-200);border-bottom:1px solid var(--color-divider)">
+                  <span style="font-family:var(--font-heading);font-size:13px;letter-spacing:.06em;text-transform:uppercase">{{ g.date }}</span>
+                  <span class="mono" style="font-size:12px;color:var(--color-neutral-700)">{{ g.total }}</span>
+                </div>
+                <sc-for list="{{ g.items }}" as="t" hint-placeholder-count="3">
+                  <div class="row" style="padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-neutral-300);min-height:60px">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                      <div style="font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.merchant }}</div>
+                      <div style="font-size:11.5px;color:var(--color-neutral-700)">{{ t.category }}</div>
+                    </div>
+                    <div class="mono" style="font-size:14px;white-space:nowrap;color:{{ t.color }};text-decoration:{{ t.strike }}">{{ t.amt }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2)">
+            <button class="btn btn-secondary" style="min-height:44px;width:100%;margin:0">Load earlier transactions</button>
+            <div style="font-size:11px;color:var(--color-neutral-700);text-align:center">Tap a row to recategorize or correct it.</div>
+          </div>
+
+          <div style="display:flex;border-top:1px solid var(--color-divider)">
+            <sc-for list="{{ tabsTx }}" as="t" hint-placeholder-count="4">
+              <div class="tab" style="color:{{ t.color }};border-top:2px solid {{ t.mark }}">{{ t.name }}</div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div id="1e" class="plate">
+        <div style="display:flex;gap:var(--space-3);align-items:flex-start">
+          <span class="tag tag-outline" style="flex:none;margin-top:4px">1e</span>
+          <div>
+            <div style="font-family:var(--font-heading);font-size:23px;line-height:1.1">Category detail</div>
+            <div style="font-size:13px;color:var(--color-neutral-700)">One category: both limits, its shape over the month, where it went.</div>
+          </div>
+        </div>
+
+        <div class="scr blueprint">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="sb"><span>9:41</span><span>MARCH 2026</span></div>
+          <div class="appbar">
+            <button class="btn" style="border-color:transparent;width:36px;height:36px;padding:0" aria-label="Back">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6" /></svg>
+            </button>
+            <div style="margin-right:auto">
+              <div style="font-family:var(--font-heading);font-size:17px;line-height:1.15">Groceries</div>
+              <div style="font-size:11px;color:var(--color-neutral-700)">8 transactions · day 17 of 31</div>
+            </div>
+            <button class="btn btn-secondary" style="min-height:36px">Edit</button>
+          </div>
+
+          <div class="body">
+            <div class="card blueprint">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="k">Spent of monthly limit</div>
+              <div style="display:flex;align-items:flex-end;gap:var(--space-3)">
+                <div class="fig" style="font-size:46px">€312.40</div>
+                <div style="padding-bottom:6px;font-size:13px;line-height:1.35">
+                  <div>of €520.00</div>
+                  <div style="color:var(--color-neutral-700)">€207.60 left</div>
+                </div>
+              </div>
+              <div class="track" style="height:10px"><div class="fill" style="width:60%"></div><div class="pace" style="left:{{ pacePct }}"></div></div>
+              <div class="row" style="justify-content:space-between;font-size:11.5px;color:var(--color-neutral-700)">
+                <span>€27.42 above even pace</span><span class="mono">60%</span>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+              <div class="card" style="gap:var(--space-1)">
+                <div class="kq">Weekly limit</div>
+                <div class="fig" style="font-size:23px">€120.00</div>
+                <div style="font-size:11px;color:var(--color-neutral-700)">€86.31 used this week</div>
+                <div class="track" style="height:4px;margin-top:5px"><div class="fill" style="width:72%"></div></div>
+              </div>
+              <div class="card" style="gap:var(--space-1)">
+                <div class="kq">Last month</div>
+                <div class="fig" style="font-size:23px">€541.80</div>
+                <div style="font-size:11px;color:var(--color-neutral-700)">over by €21.80</div>
+              </div>
+            </div>
+
+            <div class="card blueprint">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="row" style="justify-content:space-between">
+                <div class="kq">Groceries by day</div>
+                <span class="mono" style="font-size:11px;color:var(--color-neutral-700)">8 shops</span>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:2px;height:60px">
+                <sc-for list="{{ grocDays }}" as="d" hint-placeholder-count="31">
+                  <div style="flex:1;height:{{ d.h }};background:{{ d.bg }};min-height:1px"></div>
+                </sc-for>
+              </div>
+              <div class="row" style="justify-content:space-between;font-size:10.5px;color:var(--color-neutral-700)">
+                <span class="mono">1 MAR</span><span class="mono">TODAY</span><span class="mono">31 MAR</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="kq">Where it goes</div>
+              <sc-for list="{{ merchants }}" as="m" hint-placeholder-count="3">
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <div class="row" style="justify-content:space-between;font-size:13.5px">
+                    <span>{{ m.name }}</span>
+                    <span class="row" style="gap:6px"><span style="font-size:11px;color:var(--color-neutral-700)">{{ m.visits }}</span><span class="mono" style="font-size:13px">{{ m.amt }}</span></span>
+                  </div>
+                  <div class="track" style="height:4px"><div class="fill" style="width:{{ m.pct }}"></div></div>
+                </div>
+              </sc-for>
+              <div style="font-size:12px;color:var(--color-neutral-700);border-top:1px solid var(--color-divider);padding-top:var(--space-2);text-wrap:pretty">Coop Tallinn is 54% of groceries across 4 shops, €42.43 a visit. Rimi and Selver average €34.15.</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+              <div class="kq">8 transactions</div>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ grocTx }}" as="t" hint-placeholder-count="8">
+                  <div class="row" style="justify-content:space-between;padding:var(--space-3) 0;border-bottom:1px solid var(--color-neutral-300);min-height:56px">
+                    <div style="display:flex;flex-direction:column;gap:2px">
+                      <span style="font-size:14.5px">{{ t.merchant }}</span>
+                      <span style="font-size:11.5px;color:var(--color-neutral-700)">{{ t.date }} · {{ t.account }}</span>
+                    </div>
+                    <span class="mono" style="font-size:14px">{{ t.amt }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:960,&quot;height&quot;:1400},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Dark&quot;,&quot;Light&quot;],&quot;default&quot;:&quot;Dark&quot;,&quot;tsType&quot;:&quot;\&quot;Dark\&quot; | \&quot;Light\&quot;&quot;,&quot;section&quot;:&quot;Appearance&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const eur = n => "€" + n.toFixed(2);
+    const eur0 = n => "€" + Math.round(n);
+    const DAY = 17, DAYS = 31;
+    const pace = DAY / DAYS;
+
+    const budget = 1750;
+    const catData = [
+      ["Groceries", 312.40, 520],
+      ["Transport", 128.60, 220],
+      ["Dining", 164.00, 260],
+      ["Subscriptions", 68.96, 75],
+      ["Shopping", 142.44, 300],
+      ["Utilities", 96.00, 180],
+      ["Health", 0, 95],
+      ["Entertainment", 0, 100]
+    ];
+    const spent = catData.reduce((s, c) => s + c[1], 0);
+    const left = budget - spent;
+
+    const cats = catData.map(([name, sp, lim]) => {
+      const r = sp / lim;
+      return {
+        name,
+        spent: eur(sp),
+        limit: eur(lim),
+        label: eur(sp) + " / " + eur(lim),
+        pct: Math.min(r * 100, 100).toFixed(1) + "%",
+        color: r >= 0.85 ? "var(--color-accent-800)" : "var(--color-accent)"
+      };
+    });
+
+    const daily = [0, 84.20, 16.80, 0, 126.40, 43.80, 0, 118.60, 24.80, 73.60, 0, 108.60, 19.80, 46.80, 87.20, 84.20, 77.60];
+    const maxDay = Math.max(...daily);
+    const days = Array.from({ length: DAYS }, (_, i) => {
+      if (i >= DAY) return { h: "3px", bg: "var(--color-neutral-300)" };
+      const v = daily[i];
+      return {
+        h: v === 0 ? "3px" : Math.max(6, (v / maxDay) * 76) + "px",
+        bg: v === 0 ? "var(--color-neutral-300)" : "var(--color-accent)"
+      };
+    });
+
+    const grocDaily = { 2: 21.80, 6: 31.99, 8: 24.80, 11: 18.70, 13: 46.80, 15: 42.10, 16: 67.61, 4: 58.60 };
+    const grocMax = 67.61;
+    const grocDays = Array.from({ length: DAYS }, (_, i) => {
+      if (i >= DAY) return { h: "3px", bg: "var(--color-neutral-300)" };
+      const v = grocDaily[i] || 0;
+      return {
+        h: v === 0 ? "3px" : Math.max(6, (v / grocMax) * 60) + "px",
+        bg: v === 0 ? "var(--color-neutral-300)" : "var(--color-accent)"
+      };
+    });
+
+    const subs = [
+      { name: "Gym Fitness OÜ", day: "8th", amt: eur(39.00) },
+      { name: "Netflix", day: "15th", amt: eur(13.99) },
+      { name: "Spotify", day: "17th", amt: eur(9.99) },
+      { name: "iCloud 200GB", day: "3rd", amt: eur(2.99) },
+      { name: "Bolt Plus", day: "12th", amt: eur(2.99) }
+    ];
+
+    const tab = (names, active) => names.map(n => ({
+      name: n,
+      color: n === active ? "var(--color-accent-800)" : "var(--color-neutral-700)",
+      mark: n === active ? "var(--color-accent)" : "transparent"
+    }));
+
+    const groups = [
+      { date: "Tue 17 March", total: "−€77.60", items: [
+        { merchant: "Coop Tallinn", category: "Groceries · LHV ···4421", amt: "−€67.61" },
+        { merchant: "Spotify", category: "Subscriptions · Revolut", amt: "−€9.99" }
+      ] },
+      { date: "Mon 16 March", total: "−€84.20", items: [
+        { merchant: "Rimi Kristiine", category: "Groceries · LHV ···4421", amt: "−€42.10" },
+        { merchant: "Shell Auto", category: "Transport · LHV ···4421", amt: "−€42.10" }
+      ] },
+      { date: "Sun 15 March", total: "−€87.20", items: [
+        { merchant: "Vapiano", category: "Dining · Revolut", amt: "−€38.40" },
+        { merchant: "To savings account", category: "Transfer · excluded", amt: "−€200.00", strike: "line-through", color: "var(--color-neutral-600)" },
+        { merchant: "Netflix", category: "Subscriptions · Revolut", amt: "−€13.99" },
+        { merchant: "Zara Viru", category: "Shopping · LHV ···4421", amt: "−€34.81" }
+      ] },
+      { date: "Sat 14 March", total: "−€46.80", items: [
+        { merchant: "Selver ABC", category: "Groceries · SEB ···8813", amt: "−€46.80" }
+      ] }
+    ].map(g => ({ ...g, items: g.items.map(i => ({ strike: "none", color: "var(--color-text)", ...i })) }));
+
+    const merchants = [
+      { name: "Coop Tallinn", visits: "4 shops", amt: eur(169.71), pct: "54%" },
+      { name: "Rimi Kristiine", visits: "2 shops", amt: eur(74.09), pct: "24%" },
+      { name: "Selver ABC", visits: "2 shops", amt: eur(68.60), pct: "22%" }
+    ];
+
+    const grocTx = [
+      { merchant: "Coop Tallinn", date: "17 Mar", account: "LHV ···4421", amt: eur(67.61) },
+      { merchant: "Rimi Kristiine", date: "16 Mar", account: "LHV ···4421", amt: eur(42.10) },
+      { merchant: "Selver ABC", date: "14 Mar", account: "SEB ···8813", amt: eur(46.80) },
+      { merchant: "Coop Tallinn", date: "12 Mar", account: "LHV ···4421", amt: eur(18.70) },
+      { merchant: "Coop Tallinn", date: "9 Mar", account: "Revolut", amt: eur(24.80) },
+      { merchant: "Rimi Kristiine", date: "7 Mar", account: "LHV ···4421", amt: eur(31.99) },
+      { merchant: "Coop Tallinn", date: "5 Mar", account: "LHV ···4421", amt: eur(58.60) },
+      { merchant: "Selver ABC", date: "3 Mar", account: "SEB ···8813", amt: eur(21.80) }
+    ];
+
+    return {
+      themeCls: (this.props.theme ?? "Dark") === "Dark" ? "dark" : "",
+      budget: eur0(budget),
+      spent: eur(spent), leftToSpend: eur(left),
+      underPace: eur(budget * pace - spent),
+      perDayLeft: eur(left / (DAYS - DAY)),
+      pacePct: (pace * 100).toFixed(1) + "%",
+      spentOfBudgetPct: (spent / budget * 100).toFixed(1) + "%",
+      avgDay: eur(spent / DAY),
+      cats, days, grocDays, subs, groups, merchants, grocTx,
+      subsTotal: eur(subs.reduce((s, x) => s + parseFloat(x.amt.slice(1)), 0)),
+      tabsHome: tab(["Overview", "Ledger", "Limits", "Import"], "Overview"),
+      tabsTx: tab(["Overview", "Ledger", "Limits", "Import"], "Ledger"),
+      accounts: [
+        { name: "LHV ···4421", cls: "tag-accent" },
+        { name: "SEB ···8813", cls: "tag-neutral" },
+        { name: "Revolut", cls: "tag-neutral" },
+        { name: "Wise", cls: "tag-neutral" }
+      ],
+      shots: [
+        { file: "IMG_4821.PNG", meta: "1–12 March · 14 rows kept", status: "discarded", cls: "tag-neutral", thumb: "none", mark: "×" },
+        { file: "IMG_4822.PNG", meta: "12–17 March · 18 rows kept", status: "discarded", cls: "tag-neutral", thumb: "none", mark: "×" },
+        { file: "IMG_4823.PNG", meta: "in memory · reading now", status: "reading", cls: "tag-outline", thumb: "repeating-linear-gradient(135deg,transparent 0 4px,var(--color-neutral-300) 4px 5px)", mark: "" }
+      ],
+      filters: [
+        { name: "All", cls: "tag-accent" },
+        { name: "Groceries", cls: "tag-neutral" },
+        { name: "Transport", cls: "tag-neutral" },
+        { name: "Dining", cls: "tag-neutral" },
+        { name: "Shopping", cls: "tag-neutral" }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>
