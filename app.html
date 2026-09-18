@@ -257,6 +257,51 @@
   .manual-dialog label{display:block;margin-bottom:6px;}
   .empty-state .btn-row{justify-content:center;margin:16px 0;}
   :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+  #monthPicker{color-scheme:dark;background:var(--surface);color:var(--text);border:1px solid var(--divider);border-radius:8px;padding:10px;min-height:42px;font:inherit;min-width:0;}
+  /* Responsive workspace: touch navigation on phones, top navigation on desktop. */
+  @media (min-width:640px) and (max-width:1023px){
+    .shell,.tabbar,#demoBanner{max-width:760px;}
+    .viewport{padding:24px;}
+  }
+  @media (min-width:1024px){
+    .shell{max-width:1180px;width:calc(100% - 64px);padding-bottom:32px;}
+    .appbar{position:relative;padding:24px 0 20px;gap:16px;}
+    .appbar .titles h1{font-size:28px;}
+    .appbar .titles .sub{font-size:13px;margin-top:5px;}
+    .appbar .btn{min-height:44px;}
+    .tabbar{position:sticky;top:0;bottom:auto;left:auto;right:auto;max-width:none;width:100%;margin:0;border:1px solid var(--divider);border-radius:12px;overflow:hidden;z-index:6;}
+    .tab-btn{flex:0 1 180px;min-height:52px;font-size:13px;letter-spacing:0;text-transform:none;border-top:0;border-bottom:3px solid transparent;}
+    .tab-btn.active{border-bottom-color:var(--accent);background:var(--accent-100);}
+    .tab-btn:hover{color:var(--text);background:var(--surface-2);}
+    #monthNavigation{justify-content:flex-end;padding:20px 0 !important;}
+    #monthPicker{flex:0 1 190px !important;}
+    .viewport{padding:8px 0 32px;}
+    .view{gap:24px;}
+    #viewOverview.active{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;}
+    .card,.card.blueprint{padding:24px;}
+    #viewOverview>.col{padding:24px;border:1px solid var(--divider);border-radius:var(--radius);background:var(--surface);}
+    #viewLedger{gap:20px;}
+    .filter-row{flex-wrap:wrap;overflow:visible;}
+    .tx-row{padding:18px 20px;gap:24px;}
+    .tx-row .who{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,280px);align-items:center;gap:24px;}
+    .tx-row .merchant{font-size:16px;}
+    .tx-row .meta{font-size:13px;white-space:normal;}
+    .tx-row .amt{min-width:130px;text-align:right;}
+    .day-header{padding:14px 20px;}
+    .edit-panel{max-width:760px;margin:0 20px 20px;}
+    #viewImport.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;}
+    #importStatic,#importDynamic{min-width:0;}
+    #importTextarea{min-height:200px;}
+    #viewLimits.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);align-items:start;}
+    #viewLimits>.budget-actions,#limitsSaveMsg{grid-column:1 / -1;}
+    .budget-actions{bottom:16px;justify-content:flex-end;}
+    #viewCategory{max-width:900px;width:100%;margin:0 auto;}
+    #demoBanner{max-width:1180px;width:calc(100% - 64px);border-radius:0 0 10px 10px;}
+    .settings-panel{width:440px;padding:28px;}
+    .menu-panel{margin-left:max(32px,calc((100vw - 1180px)/2));margin-top:76px;}
+    .empty-state{padding:64px 24px;}
+    .appbar-search{padding:16px 0;}
+  }
 </style>
 </head>
 <body>
@@ -296,6 +341,7 @@
   <div class="shell">
     <header class="appbar" id="appbar"></header>
     <div class="appbar-search hidden" id="appbarSearch"></div>
+    <nav class="tabbar" id="tabbar" aria-label="Main navigation"></nav>
     <main class="viewport" id="viewport">
       <section class="view" data-view="overview" id="viewOverview"></section>
       <section class="view" data-view="ledger" id="viewLedger">
@@ -309,7 +355,7 @@
         <div id="importDynamic"></div>
       </section>
     </main>
-    <nav class="tabbar" id="tabbar"></nav>
+
   </div>
 
   <input type="file" id="fileInput" accept=".txt,.csv,image/png,image/jpeg,image/webp,image/gif" multiple style="display:none;">
