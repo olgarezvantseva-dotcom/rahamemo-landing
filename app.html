@@ -244,9 +244,53 @@
   @media (max-width:420px){
     .review-grid, .edit-grid{grid-template-columns:1fr;}
   }
+  .budget-actions{position:sticky;bottom:76px;padding:12px;background:var(--surface);border:1px solid var(--divider);border-radius:12px;display:flex;gap:8px;flex-wrap:wrap;z-index:5;}
+  .category-name-input:disabled{opacity:1;background:transparent;border-color:transparent;color:var(--text);}
+  .filter-row{scrollbar-width:thin;}
+  button.tag{font:inherit;cursor:pointer;min-height:40px;}
+  #demoBanner{padding:12px 16px;background:#243b50;color:#e6f2fc;max-width:480px;margin:auto;}
+  #demoBanner .btn-text{color:#fff;text-decoration:underline;}
+  .manual-dialog{background:var(--surface);color:var(--text);border:1px solid var(--divider);border-radius:14px;width:calc(100% - 32px);max-width:440px;padding:24px;max-height:90dvh;overflow:auto;}
+  .manual-dialog::backdrop{background:rgba(0,0,0,.7);}
+  .manual-dialog form{display:flex;flex-direction:column;gap:14px;}
+  .manual-dialog label{display:block;margin-bottom:6px;}
+  .empty-state .btn-row{justify-content:center;margin:16px 0;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
 </style>
 </head>
 <body>
+<div id="demoBanner" class="hidden" role="status">Sample data · Changes here are temporary. <button class="btn-text" data-action="exitDemo">Exit demo</button></div>
+<dialog id="accountDialog" class="manual-dialog" aria-labelledby="accountTitle"><form id="accountForm" class="col" style="gap:14px"><h2 id="accountTitle">Add your EUR account</h2><label for="accountName">Account name</label><input id="accountName" required maxlength="60" placeholder="e.g. Main account or Savings"><p class="hint">Use a nickname. No account number or bank connection is needed.</p><p id="accountError" role="alert"></p><div class="btn-row"><button class="btn btn-primary" type="submit">Add account</button><button class="btn btn-secondary" type="button" data-action="cancelAccount">Cancel</button></div></form></dialog>
+<dialog id="restoreDialog" class="manual-dialog" aria-labelledby="restoreTitle">
+  <div class="col" style="gap:14px"><h2 id="restoreTitle">Review your backup</h2><p id="backupSummary"></p>
+  <p class="hint">Merge adds transactions and missing categories, skips matching transactions, and keeps your current budget and settings. Replace restores the backup’s transactions, categories, budget, limits, and currency. Your API key stays unchanged.</p>
+  <button class="btn btn-ghost" data-action="exportBackup">Download current data first</button>
+  <button class="btn btn-primary" data-action="mergeBackup">Merge with my data</button><button class="btn btn-secondary" data-action="replaceBackup">Replace my data…</button>
+  <p id="restoreStatus" role="alert"></p><button class="btn-text" data-action="cancelBackup">Cancel</button></div>
+</dialog>
+<dialog id="addDialog" class="manual-dialog" aria-labelledby="addTitle">
+  <div class="col" style="gap:14px;">
+    <h2 id="addTitle">Add transactions</h2>
+    <button class="btn btn-primary" data-action="addManually">Add manually</button>
+    <button class="btn btn-secondary" data-action="importScreenshots">Import screenshots</button>
+    <p class="hint">Select one or more screenshots. Review them in Import, then choose Parse when you’re ready.</p>
+    <button class="btn-text" data-action="cancelAdd">Cancel</button>
+  </div>
+</dialog>
+<input type="file" id="screenshotInput" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+<dialog id="manualDialog" class="manual-dialog" aria-labelledby="manualTitle">
+  <form id="manualForm">
+    <h2 id="manualTitle">Add a transaction</h2>
+    <p class="hint">Saved only when you choose Save transaction.</p>
+    <div><label for="manualType">Transaction type</label><select id="manualType"><option value="expense">Expense</option><option value="income">Income</option><option value="transfer">Transfer (excluded from spending)</option></select></div>
+    <div class="edit-grid"><div><label for="manualDate">Date</label><input id="manualDate" type="date" required></div><div><label for="manualAmount">Amount</label><input id="manualAmount" type="number" inputmode="decimal" min="0.01" step="0.01" required></div></div>
+    <div><label for="manualMerchant">Merchant or description</label><input id="manualMerchant" maxlength="160" required></div>
+    <div><label for="manualAccount">Account (EUR)</label><select id="manualAccount"></select><button type="button" class="btn-text" data-action="newAccount">Add an account</button></div>
+    <div><label for="manualCategory">Category</label><select id="manualCategory"></select></div>
+    <p id="manualError" class="hint" role="alert"></p>
+    <div class="btn-row"><button type="submit" class="btn btn-primary">Save transaction</button><button id="manualCancel" type="button" class="btn btn-secondary">Cancel</button></div>
+  </form>
+</dialog>
 
   <div class="shell">
     <header class="appbar" id="appbar"></header>
@@ -302,8 +346,16 @@
         <button class="btn btn-ghost" id="forgetKeyBtn">Forget key</button>
       </div>
       <div class="col" style="border-top:1px solid var(--divider);padding-top:14px;gap:8px;">
+        <h3>My EUR accounts</h3><p id="accountList" class="hint"></p><button class="btn btn-secondary" data-action="newAccount">Add an account</button>
+        <h3>Backup &amp; restore</h3>
+        <p class="hint">Saved in this browser only. Download a backup to keep a copy or move to another device. Backups contain financial data; keep the file somewhere private. API keys are never included.</p>
+        <div class="btn-row"><button class="btn btn-secondary" data-action="exportBackup">Download backup</button><button class="btn btn-secondary" data-action="selectBackup">Restore from file</button></div>
+        <input id="backupFile" type="file" accept=".json,application/json" hidden>
+        <p id="backupStatus" role="status" class="hint"></p>
+      </div>
+      <div class="col" style="border-top:1px solid var(--divider);padding-top:14px;gap:8px;">
         <span class="kq" style="color:var(--red);">Danger zone</span>
-        <p class="hint" style="margin-top:0;">Permanently delete every transaction, budget, limit, and custom category stored in this browser. Your API key and preferences are kept — use "Forget key" separately for that.</p>
+        <p class="hint" style="margin-top:0;">Permanently delete every transaction, account, budget, limit, and custom category stored in this browser. Your API key and preferences are kept — use "Forget key" separately for that.</p>
         <button class="btn btn-danger" id="clearAllBtn">Clear all data</button>
       </div>
       <div class="settings-footer">
@@ -378,12 +430,13 @@
 
       <div class="onboard-step" data-step="0">
         <h2>Welcome to your ledger</h2>
-        <p>Paste in a bank statement export — or upload a screenshot or photo of one — and Claude reads it, pulls out each transaction, and sorts it into a category: groceries, transport, subscriptions, and so on. Everything is kept in this browser's local storage. There's no RahaMemo server; nothing you enter here goes anywhere except directly to Anthropic's API when you ask it to parse something.</p>
-        <p>You'll need your own Anthropic API key to make that call — takes about a minute to set up.</p>
-        <div class="onboard-nav">
-          <button class="btn-text" id="onbSkipIntro">Skip intro</button>
-          <button class="btn btn-primary" id="onbToStep1">Let's set it up →</button>
-        </div>
+        <p>See where your money goes, review your spending, and set a monthly budget.</p>
+        <button class="btn btn-primary" data-action="startDemo">Explore with sample data</button>
+        <button class="btn btn-secondary" id="onbManual">Add manually</button>
+        <button class="btn btn-secondary" id="onbToStep1">Import a statement</button>
+        <p class="hint">Manual entry and the demo need no account. Importing uses your own Anthropic API key and paid API credit. Your ledger is saved in this browser only.</p>
+        <button class="btn-text" id="onbSkipIntro">Explore on my own</button>
+
       </div>
 
       <div class="onboard-step" data-step="1">
@@ -436,7 +489,7 @@
 
       <div class="onboard-step" data-step="3">
         <h2>You're all set</h2>
-        <p>Your key and preferences are saved in this browser. Any transactions you just parsed are already in the Ledger tab — tap a row to edit or recategorize it. Set a monthly budget and per-category limits any time from the Limits tab. You can replay this guide from Settings.</p>
+        <p>Your ledger is ready. Review imported transactions before confirming them. You can add an API key later in Settings. Set a monthly budget and per-category limits any time from the Budgets tab. You can replay this guide from Settings.</p>
         <div class="onboard-nav" style="justify-content:flex-end;">
           <button class="btn btn-primary" id="onbFinish">Go to my ledger</button>
         </div>
@@ -452,12 +505,20 @@
   var LS_KEY_API = "rahamemo_api_key";
   var LS_KEY_MODEL = "rahamemo_model";
   var LS_KEY_CURRENCY = "rahamemo_currency";
+  var LS_KEY_ACCOUNTS = "rahamemo_accounts";
   var LS_KEY_TX = "rahamemo_transactions";
   var LS_KEY_BUDGET = "rahamemo_budget";
   var LS_KEY_LIMITS = "rahamemo_category_limits";
   var LS_KEY_CATEGORIES = "rahamemo_categories";
   var LS_KEY_ONBOARDED = "rahamemo_onboarded";
 
+  var demoData = null;
+  var financialKeys = [LS_KEY_ACCOUNTS, LS_KEY_TX, LS_KEY_BUDGET, LS_KEY_LIMITS, LS_KEY_CATEGORIES];
+  var dataStore = {
+    getItem: function(key){ return demoData && financialKeys.indexOf(key) >= 0 ? (demoData[key] || null) : localStorage.getItem(key); },
+    setItem: function(key, value){ if(demoData && financialKeys.indexOf(key) >= 0) demoData[key] = value; else localStorage.setItem(key, value); },
+    removeItem: function(key){ if(demoData && financialKeys.indexOf(key) >= 0) delete demoData[key]; else localStorage.removeItem(key); }
+  };
   var DEFAULT_CATEGORIES = ["Groceries","Transport","Subscriptions","Dining","Shopping","Utilities","Health","Entertainment","Income","Transfer","Other"];
   var PROTECTED_CATEGORIES = ["Transfer","Other"]; // relied on by name elsewhere (transfer-exclusion, fallback bucket)
   var CATEGORIES = loadCategoriesFromStorage();
@@ -467,16 +528,18 @@
   var TAB_VIEWS = [
     { view: "overview", label: "Overview" },
     { view: "ledger", label: "Ledger" },
-    { view: "limits", label: "Limits" },
+    { view: "limits", label: "Budgets" },
     { view: "import", label: "Import" }
   ];
 
   // ---------- in-memory state ----------
   var state = {
+    month: null,
     view: "overview",
     previousView: "overview",
     category: null,
     ledgerFilter: "All",
+    importAccount: "",
     ledgerSearchOpen: false,
     ledgerSearch: "",
     editingTxId: null,
@@ -568,11 +631,12 @@
     refreshKeyStatus();
   }
   function clearAllData(){
-    if(!confirm("Delete every transaction, budget, limit, and custom category stored in this browser? This can't be undone.")) return;
-    localStorage.removeItem(LS_KEY_TX);
-    localStorage.removeItem(LS_KEY_BUDGET);
-    localStorage.removeItem(LS_KEY_LIMITS);
-    localStorage.removeItem(LS_KEY_CATEGORIES);
+    if(!confirm("Delete every transaction, account, budget, limit, and custom category stored in this browser? This can't be undone.")) return;
+    dataStore.removeItem(LS_KEY_ACCOUNTS);
+    dataStore.removeItem(LS_KEY_TX);
+    dataStore.removeItem(LS_KEY_BUDGET);
+    dataStore.removeItem(LS_KEY_LIMITS);
+    dataStore.removeItem(LS_KEY_CATEGORIES);
     CATEGORIES.length = 0;
     DEFAULT_CATEGORIES.forEach(function(c){ CATEGORIES.push(c); });
     pendingReview = [];
@@ -597,25 +661,25 @@
   }
 
   // ---------- budget & limits ----------
-  function loadBudget(){ return Number(localStorage.getItem(LS_KEY_BUDGET)) || 0; }
-  function saveBudget(v){ localStorage.setItem(LS_KEY_BUDGET, String(v)); }
+  function loadBudget(){ return Number(dataStore.getItem(LS_KEY_BUDGET)) || 0; }
+  function saveBudget(v){ dataStore.setItem(LS_KEY_BUDGET, String(v)); }
   function loadLimits(){
-    try{ return JSON.parse(localStorage.getItem(LS_KEY_LIMITS) || "{}"); }
+    try{ return JSON.parse(dataStore.getItem(LS_KEY_LIMITS) || "{}"); }
     catch(e){ return {}; }
   }
-  function saveLimits(obj){ localStorage.setItem(LS_KEY_LIMITS, JSON.stringify(obj)); }
+  function saveLimits(obj){ dataStore.setItem(LS_KEY_LIMITS, JSON.stringify(obj)); }
 
   // ---------- categories ----------
   function loadCategoriesFromStorage(){
     try{
-      var raw = localStorage.getItem(LS_KEY_CATEGORIES);
+      var raw = dataStore.getItem(LS_KEY_CATEGORIES);
       if(!raw) return DEFAULT_CATEGORIES.slice();
       var parsed = JSON.parse(raw);
       return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_CATEGORIES.slice();
     }catch(e){ return DEFAULT_CATEGORIES.slice(); }
   }
   function persistCategories(){
-    localStorage.setItem(LS_KEY_CATEGORIES, JSON.stringify(CATEGORIES));
+    dataStore.setItem(LS_KEY_CATEGORIES, JSON.stringify(CATEGORIES));
   }
   function isProtectedCategory(name){ return PROTECTED_CATEGORIES.indexOf(name) >= 0; }
   function categoryExists(name){
@@ -682,15 +746,15 @@
   // ---------- transactions store ----------
   function loadTransactions(){
     try{
-      var raw = localStorage.getItem(LS_KEY_TX);
+      var raw = dataStore.getItem(LS_KEY_TX);
       return raw ? JSON.parse(raw) : [];
     }catch(e){ return []; }
   }
   function saveTransactions(list){
-    localStorage.setItem(LS_KEY_TX, JSON.stringify(list));
+    dataStore.setItem(LS_KEY_TX, JSON.stringify(list));
   }
   function txKey(t){
-    return [t.date, (t.merchant||"").toLowerCase().trim(), Number(t.amount).toFixed(2)].join("|");
+    return [t.account || "", t.date, (t.merchant||"").toLowerCase().trim(), Number(t.amount).toFixed(2)].join("|");
   }
   function mergeTransactions(existing, incoming){
     var seen = {};
@@ -702,6 +766,7 @@
       seen[k] = true;
       existing.push({
         id: makeId("tx"),
+        account: t.account || "",
         date: t.date || "",
         merchant: t.merchant || "(unknown)",
         category: CATEGORIES.indexOf(t.category) >= 0 ? t.category : "Other",
@@ -715,19 +780,137 @@
     var list = loadTransactions();
     var idx = list.findIndex(function(t){ return t.id === id; });
     if(idx === -1) return;
+    if(list[idx].transferGroup) unlinkTransfer(list, list[idx].transferGroup);
     list[idx][field] = value;
     saveTransactions(list);
   }
   function deleteTx(id){
-    var list = loadTransactions().filter(function(t){ return t.id !== id; });
+    var list=loadTransactions(); var target=list.find(function(t){return t.id===id;}); if(target && target.transferGroup) unlinkTransfer(list,target.transferGroup);
+    list = list.filter(function(t){ return t.id !== id; });
     saveTransactions(list);
   }
-  function addManualRow(){
-    var list = loadTransactions();
-    var id = makeId("tx");
-    list.push({ id: id, date: todayIso(), merchant: "New transaction", category: "Other", amount: 0 });
-    saveTransactions(list);
-    return id;
+
+  function openManual(){
+    q('manualForm').reset();
+    q('manualDate').value = todayIso();
+    q('manualError').textContent = '';
+    q('manualCategory').innerHTML = CATEGORIES.filter(function(c){ return c !== 'Income' && c !== 'Transfer'; }).map(function(c){ return '<option>' + escapeHtml(c) + '</option>'; }).join('');
+    q('manualCategory').value = 'Other';
+    q('manualCategory').disabled = false;
+    q('manualAccount').innerHTML=accountOptions('');
+    q('manualDialog').showModal();
+  }
+  function startDemo(){
+    state.month = null;
+    if(demoData) return;
+    demoData = {};
+    CATEGORIES = DEFAULT_CATEGORIES.slice();
+    var month = currentMonthKey();
+    var examples = [['Coop Tallinn','Groceries',-43.80],['Monthly salary','Income',2400],['City transport','Transport',-30],['Coffee with friends','Dining',-18.50],['Music subscription','Subscriptions',-10.99],['Weekly groceries','Groceries',-62.40],['Electricity','Utilities',-74],['Bookshop','Shopping',-24]];
+    saveTransactions(examples.map(function(row,i){ return {id:'demo-'+i,date:month+'-'+pad2(Math.max(1,dayOfMonth()-i)),merchant:row[0],category:row[1],amount:row[2]}; }));
+    saveBudget(1200); saveLimits({Groceries:300,Dining:150,Transport:80});
+    els.onboardOverlay.classList.add('hidden');
+    state.ledgerFilter = 'All'; state.ledgerSearch = ''; state.editingTxId = null;
+    setView('overview');
+  }
+  function exitDemo(){
+    state.month=null; demoData = null; CATEGORIES = loadCategoriesFromStorage();
+    state.ledgerFilter = 'All'; state.ledgerSearch = ''; state.editingTxId = null; state.manageCategories = false;
+    setView('overview');
+  }
+  function loadAccounts(){try{var value=JSON.parse(dataStore.getItem(LS_KEY_ACCOUNTS)||'[]');return Array.isArray(value)?value:[];}catch(e){return [];}}
+  function accountOptions(selected){return '<option value="">Account not assigned</option>'+loadAccounts().map(function(a){return '<option value="'+escapeHtml(a)+'"'+(a===selected?' selected':'')+'>'+escapeHtml(a)+'</option>';}).join('');}
+  function transferDay(t){var d=parseDate(t.date);return d?Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000:NaN;}
+  function possibleTransfer(a,b){
+    return !!a.account && !!b.account && a.account!==b.account && !a.transferGroup && !b.transferGroup && Number(a.amount)<0 && Number(b.amount)>0 && Math.round(-Number(a.amount)*100)===Math.round(Number(b.amount)*100) && Math.abs(transferDay(a)-transferDay(b))<=3;
+  }
+  function transferSuggestions(){
+    var list=loadTransactions(),incoming=new Map(),pairs=[];
+    list.forEach(function(t){if(t.account && !t.transferGroup && Number(t.amount)>0){var key=Math.round(Number(t.amount)*100);if(!incoming.has(key))incoming.set(key,[]);incoming.get(key).push(t);}});
+    list.forEach(function(a){if(!a.account || a.transferGroup || Number(a.amount)>=0 || pairs.length>=10)return;
+      (incoming.get(Math.round(-Number(a.amount)*100))||[]).some(function(b){if(pairs.length>=10)return true;if(possibleTransfer(a,b) && (monthKeyOf(a.date)===selectedMonthKey() || monthKeyOf(b.date)===selectedMonthKey()))pairs.push([a,b]);return false;});
+    });
+    if(!pairs.length)return '';
+    return '<div class="card col" style="margin:14px 0;"><h2>Possible transfers</h2><p class="hint">Matching amounts across your accounts within 3 days. Confirm only money moved between your own accounts. Fees stay separate expenses. Showing up to 10 suggestions.</p>'+pairs.map(function(pair){var a=pair[0],b=pair[1];return '<div style="border-top:1px solid var(--divider);padding-top:12px;"><strong>'+escapeHtml(a.account)+' → '+escapeHtml(b.account)+' · '+fmtAmount(Math.abs(a.amount),'€')+'</strong><p class="hint">'+escapeHtml(a.date)+' · '+escapeHtml(a.merchant)+'<br>'+escapeHtml(b.date)+' · '+escapeHtml(b.merchant)+'</p><button class="btn btn-secondary" data-action="confirmTransfer" data-from="'+escapeHtml(a.id)+'" data-to="'+escapeHtml(b.id)+'">Confirm internal transfer</button></div>';}).join('')+'</div>';
+  }
+  function confirmTransfer(from,to){
+    var list=loadTransactions(),a=list.find(function(t){return t.id===from;}),b=list.find(function(t){return t.id===to;});
+    if(!a || !b || !possibleTransfer(a,b))return;
+    var group=makeId('transfer');[a,b].forEach(function(t){t.previousCategory=t.previousCategory || (t.category==='Transfer'?(t.amount>0?'Income':'Other'):t.category);t.category='Transfer';t.transferGroup=group;});
+    saveTransactions(list);renderLedgerView();renderAppbar();
+  }
+  function unlinkTransfer(list,group){list.forEach(function(t){if(t.transferGroup===group){t.category=t.previousCategory || (Number(t.amount)>0?'Income':'Other');delete t.transferGroup;delete t.previousCategory;}});}
+
+  var pendingBackup=null;
+  function backupPayload(){
+    return {format:'rahamemo-backup',version:2,accounts:loadAccounts(),exportedAt:new Date().toISOString(),transactions:loadTransactions(),categories:CATEGORIES.slice(),budget:loadBudget(),limits:loadLimits(),settings:{currency:loadSettings().currency}};
+  }
+  function exportBackup(){
+    var blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob),link=document.createElement('a');
+    link.href=url;link.download='rahamemo'+(demoData?'-sample':'')+'-backup-'+todayIso()+'.json';link.click();
+    setTimeout(function(){URL.revokeObjectURL(url);},1000);
+    q('backupStatus').textContent='Backup downloaded. It does not contain your API key.';
+  }
+  function validBackupName(value){ return typeof value==='string' && value.trim().length>0 && value.length<=100 && ['__proto__','constructor','prototype'].indexOf(value)<0; }
+  function validBackupDate(value){
+    if(typeof value!=='string')return false;
+    var date=parseDate(value);if(!date || !Number.isFinite(date.getTime()))return false;
+    var canonical=date.getFullYear()+'-'+pad2(date.getMonth()+1)+'-'+pad2(date.getDate());
+    return value===canonical || value===pad2(date.getDate())+'-'+pad2(date.getMonth()+1);
+  }
+  function validateBackup(input){
+    if(!input || input.format!=='rahamemo-backup' || [1,2].indexOf(input.version)<0) throw Error('Choose a RahaMemo backup with a supported version.');
+    if(!Array.isArray(input.transactions) || input.transactions.length>100000 || !Array.isArray(input.categories) || input.categories.length>500 || !input.categories.every(validBackupName)) throw Error('This backup has invalid transactions or categories.');
+    if(typeof input.budget!=='number' || !Number.isFinite(input.budget) || input.budget<0 || !input.limits || Array.isArray(input.limits) || typeof input.limits!=='object') throw Error('This backup has invalid budget values.');
+    var accounts=input.version===2?input.accounts:[];
+    if(!Array.isArray(accounts) || accounts.length>500 || !accounts.every(validBackupName))throw Error('Invalid accounts in backup.');
+    accounts=Array.from(new Set(accounts));
+    var categories=Array.from(new Set(input.categories.concat(['Transfer','Other'])));
+    var limits={};
+    Object.keys(input.limits).forEach(function(c){var v=input.limits[c];if(!validBackupName(c) || categories.indexOf(c)<0 || typeof v!=='number' || !Number.isFinite(v) || v<0) throw Error('This backup has invalid category limits.');limits[c]=v;});
+    var transactions=input.transactions.map(function(t){
+      if(!t || !validBackupDate(t.date) || typeof t.merchant!=='string' || t.merchant.length>1000 || !validBackupName(t.category) || categories.indexOf(t.category)<0 || typeof t.amount!=='number' || !Number.isFinite(t.amount)) throw Error('A transaction in this backup is invalid. Nothing has been restored.');
+      if(t.account && accounts.indexOf(t.account)<0)throw Error('Unknown account in backup.');
+      return {id:makeId('tx'),account:t.account || '',transferGroup:typeof t.transferGroup==='string' && t.transferGroup.length<120?t.transferGroup:undefined,previousCategory:categories.indexOf(t.previousCategory)>=0?t.previousCategory:undefined,date:t.date,merchant:t.merchant,category:t.category,amount:t.amount};
+    });
+    var currency=input.settings && input.settings.currency;
+    if(typeof currency!=='string' || !currency.trim() || currency.length>3) throw Error('This backup has an invalid currency.');
+    return {accounts:accounts,transactions:transactions,categories:categories,budget:input.budget,limits:limits,currency:currency};
+  }
+  async function readBackup(e){
+    var file=e.target.files[0];e.target.value='';pendingBackup=null;if(!file)return;
+    try{
+      if(file.size>10*1024*1024) throw Error('Choose a backup smaller than 10 MB.');
+      var content=await new Promise(function(resolve,reject){var reader=new FileReader();reader.onload=function(){resolve(reader.result);};reader.onerror=function(){reject(Error('Could not read this file.'));};reader.readAsText(file);});
+      pendingBackup=validateBackup(JSON.parse(content));
+      q('backupSummary').textContent=pendingBackup.transactions.length+' transactions · '+pendingBackup.categories.length+' categories · '+pendingBackup.accounts.length+' accounts · Monthly budget: '+pendingBackup.currency+pendingBackup.budget.toFixed(2)+'.';
+      q('restoreStatus').textContent='';q('restoreDialog').showModal();
+    }catch(error){q('backupStatus').textContent=error instanceof SyntaxError?'This is not a valid JSON backup.':error.message;}
+  }
+  function restoreBackup(replace){
+    if(!pendingBackup || demoData)return;
+    if(!replace && pendingBackup.currency !== loadSettings().currency){q('restoreStatus').textContent='The backup uses a different currency. Merge cannot convert amounts. Choose Replace to restore the backup as-is, or cancel.';return;}
+    if(replace && !confirm('Replace your current transactions, categories, budget, limits, and currency with this backup? Download your current data first if you want to keep it.'))return;
+    var backup=pendingBackup, list=replace?backup.transactions:loadTransactions();
+    var categories=replace?backup.categories:Array.from(new Set(CATEGORIES.concat(backup.categories)));
+    var added=backup.transactions.length;
+    if(!replace){
+      var seen=new Set(list.map(txKey));added=0;
+      backup.transactions.forEach(function(t){var key=txKey(t);if(!seen.has(key)){seen.add(key);list.push(t);added++;}});
+    }
+    var writes={};writes[LS_KEY_ACCOUNTS]=JSON.stringify(replace?backup.accounts:Array.from(new Set(loadAccounts().concat(backup.accounts))));writes[LS_KEY_TX]=JSON.stringify(list);writes[LS_KEY_CATEGORIES]=JSON.stringify(categories);
+    if(replace){writes[LS_KEY_BUDGET]=String(backup.budget);writes[LS_KEY_LIMITS]=JSON.stringify(backup.limits);writes[LS_KEY_CURRENCY]=backup.currency;}
+    var previous={};Object.keys(writes).forEach(function(k){previous[k]=localStorage.getItem(k);});
+    try{Object.keys(writes).forEach(function(k){localStorage.setItem(k,writes[k]);});}
+    catch(error){
+      Object.keys(previous).forEach(function(k){localStorage.removeItem(k);});
+      Object.keys(previous).forEach(function(k){if(previous[k]===null)localStorage.removeItem(k);else localStorage.setItem(k,previous[k]);});
+      q('restoreStatus').textContent='Not enough browser storage. Your previous data has been kept.';return;
+    }
+    CATEGORIES=categories;pendingBackup=null;state.month=null;state.ledgerFilter='All';state.ledgerSearch='';state.editingTxId=null;
+    q('restoreDialog').close();initSettingsForm();render();
+    q('backupStatus').textContent=replace?'Backup restored. Your API key was kept.':added+' transactions added; '+(backup.transactions.length-added)+' matching transactions skipped. Your budget and settings were kept.';
   }
 
   // ---------- date & month helpers ----------
@@ -747,6 +930,12 @@
   function currentMonthKey(){
     var d = todayObj();
     return d.getFullYear() + "-" + pad2(d.getMonth()+1);
+  }
+  function selectedMonthKey(){ return state.month || currentMonthKey(); }
+  function monthLabel(){ var p = selectedMonthKey().split('-'); return new Date(+p[0], +p[1]-1, 1).toLocaleDateString(undefined,{month:'long',year:'numeric'}); }
+  function changeMonth(value){
+    if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(value) || value < '1900-01' || value > currentMonthKey()) return;
+    state.month=value; state.editingTxId=null; render();
   }
   function prevMonthKey(monthKey){
     var parts = monthKey.split("-");
@@ -837,6 +1026,7 @@
   }
   function weeklySpend(list, category){
     var end = todayObj();
+    if(selectedMonthKey() !== currentMonthKey()){ var parts=selectedMonthKey().split('-'); end=new Date(+parts[0],+parts[1],0,23,59,59); }
     var start = new Date(end); start.setDate(start.getDate() - 6);
     var total = 0;
     list.forEach(function(t){
@@ -921,6 +1111,7 @@
   function cssEscape(s){ return String(s).replace(/["\\]/g, "\\$&"); }
 
   function render(){
+    q("demoBanner").classList.toggle("hidden", !demoData);
     document.querySelectorAll(".view").forEach(function(v){
       v.classList.toggle("active", v.dataset.view === state.view);
     });
@@ -944,27 +1135,27 @@
   function renderAppbar(){
     var s = loadSettings();
     var list = loadTransactions();
-    var mk = currentMonthKey();
+    var mk = selectedMonthKey();
     var html = "";
     if(state.view === "overview"){
       html = appbarHtml({
         left: iconBtn("menu", "openMenu", "Menu"),
         title: "Overview",
-        sub: "Day " + dayOfMonth() + " of " + daysInMonth(mk),
+        sub: monthLabel(),
         right: '<button type="button" class="btn btn-secondary" data-action="quickAdd" style="min-height:36px;">+ Add</button>'
       });
     } else if(state.view === "ledger"){
       var count = list.filter(function(t){ return monthKeyOf(t.date) === mk; }).length;
       html = appbarHtml({
         left: iconBtn("menu", "openMenu", "Menu"),
-        title: "Transactions",
-        sub: count + " this month",
-        right: iconBtn("search", "toggleSearch", "Search")
+        title: "Ledger",
+        sub: count + " in " + monthLabel(),
+        right: iconBtn("search", "toggleSearch", "Search") + '<button class="btn btn-secondary" data-action="quickAdd">+ Add</button>'
       });
     } else if(state.view === "limits"){
       html = appbarHtml({
         left: state.limitsBackTarget ? iconBtn("back", "backFromLimits", "Back") : iconBtn("menu", "openMenu", "Menu"),
-        title: "Limits",
+        title: "Budgets",
         sub: state.limitsBackTarget ? ("Back to " + state.limitsBackTarget) : "Monthly budget & category caps",
         right: ""
       });
@@ -981,11 +1172,16 @@
       html = appbarHtml({
         left: iconBtn("back", "backCategory", "Back"),
         title: escapeHtml(state.category || ""),
-        sub: monthList.length + " transactions · day " + dayOfMonth() + " of " + daysInMonth(mk),
+        sub: monthList.length + " transactions · " + monthLabel(),
         right: '<button type="button" class="btn btn-secondary" data-action="editFromCategory" style="min-height:36px;">Edit</button>'
       });
     }
     els.appbar.innerHTML = html;
+    var picker=q('monthNavigation');
+    if(!picker){ picker=document.createElement('div'); picker.id='monthNavigation'; picker.className='row'; picker.style.cssText='padding:10px 16px;gap:8px;'; els.appbar.after(picker); }
+    picker.hidden = ['overview','ledger','category','limits'].indexOf(state.view) < 0;
+    picker.style.display=picker.hidden?'none':'flex';
+    picker.innerHTML='<button class="btn btn-ghost" aria-label="Previous month" data-action="previousMonth">←</button><label for="monthPicker" class="hint">Month</label><input id="monthPicker" type="month" min="1900-01" max="'+currentMonthKey()+'" value="'+selectedMonthKey()+'" style="flex:1;width:140px;"><button class="btn btn-ghost" aria-label="Next month" data-action="nextMonth" '+(selectedMonthKey()>=currentMonthKey()?'disabled':'')+'>→</button>';
 
     if(state.view === "ledger" && state.ledgerSearchOpen){
       els.appbarSearch.classList.remove("hidden");
@@ -1011,7 +1207,7 @@
   // ---------- view: overview ----------
   function renderOverviewView(){
     var list = loadTransactions();
-    var mk = currentMonthKey();
+    var mk = selectedMonthKey();
     var budget = loadBudget();
     var limits = loadLimits();
     var currency = loadSettings().currency;
@@ -1024,22 +1220,22 @@
         '<h2 style="margin:2px 0 0;">Add your spending</h2>' +
         '<p class="muted" style="font-size:13.5px;">Add a transaction by hand, or upload a screenshot of your bank statement and let Claude read and categorize it for you.</p>' +
         '<div class="btn-row">' +
-          '<button type="button" class="btn btn-primary" data-action="quickAdd">+ Add manually</button>' +
+          '<button type="button" class="btn btn-primary" data-action="addManually">+ Add manually</button>' +
           '<button type="button" class="btn btn-secondary" data-action="nav" data-view="import">Upload a screenshot</button>' +
         '</div>' +
       '</div>';
     }
 
     if(!budget){
-      html += '<div class="card"><div class="k">No budget set</div><p class="muted" style="font-size:13.5px;">Set a monthly budget in the Limits tab to see what\'s left to spend and how your pace looks.</p><button type="button" class="btn btn-secondary" data-action="nav" data-view="limits" style="align-self:flex-start;">Set a budget →</button></div>';
+      html += '<div class="card"><div class="k">No budget set</div><p class="muted" style="font-size:13.5px;">Set a monthly budget in the Budgets tab to see what\'s left to spend and how your pace looks.</p><button type="button" class="btn btn-secondary" data-action="nav" data-view="limits" style="align-self:flex-start;">Set a budget →</button></div>';
     } else {
       var pace = paceInfo(budget, list, mk);
       var paceLabel = pace.underPace >= 0 ? fmtAmount(pace.underPace, currency) + " under pace" : fmtAmount(-pace.underPace, currency) + " over pace";
       html += '<div class="card blueprint">' + corners() +
-        '<div class="k">Left to spend this month</div>' +
+        '<div class="k">' + (mk === currentMonthKey() ? 'Left to spend this month' : 'Budget balance at month end') + '</div>' +
         '<div class="row" style="align-items:flex-end;gap:10px;">' +
           '<div class="fig" style="font-size:clamp(28px,11vw,46px);">' + fmtAmount(pace.left, currency) + '</div>' +
-          '<div style="padding-bottom:6px;font-size:13px;color:var(--text-soft);">' + fmtAmount(pace.perDayLeft, currency) + ' a day</div>' +
+          (mk === currentMonthKey() ? '<div style="padding-bottom:6px;font-size:13px;color:var(--text-soft);">' + fmtAmount(pace.perDayLeft, currency) + ' a day</div>' : '') +
         '</div>' +
         '<div class="row between" style="font-size:11.5px;color:var(--text-soft);">' +
           '<span>' + fmtAmount(pace.spent, currency) + ' spent · ' + escapeHtml(paceLabel) + '</span>' +
@@ -1084,7 +1280,7 @@
       }).join("");
       html += '<div class="col">' +
         '<div class="row between"><div class="kq">By category</div><a href="#" data-action="nav" data-view="limits" style="font-size:12px;">Limits</a></div>' +
-        (catRows ? '<div>' + catRows + '</div>' : '<div class="empty-state" style="padding:16px 4px;">No spending yet this month.</div>') +
+        (catRows ? '<div>' + catRows + '</div>' : '<div class="empty-state" style="padding:16px 4px;">No spending in the selected month.</div>') +
       '</div>';
     }
 
@@ -1092,12 +1288,12 @@
     if(subs.length){
       var subsTotal = subs.reduce(function(s,t){ return s + Math.abs(Number(t.amount)); }, 0);
       html += '<div class="card">' +
-        '<div class="kq">Recurring — this month\'s Subscriptions</div>' +
+        '<div class="kq">Recurring — the selected month\'s Subscriptions</div>' +
         subs.map(function(t){
           var d = parseDate(t.date);
           return '<div class="row between" style="font-size:13.5px;"><span>' + escapeHtml(t.merchant) + '</span><span class="row" style="gap:8px;"><span style="font-size:11px;color:var(--text-soft);">' + (d ? d.getDate() + "th" : "") + '</span><span class="mono">' + fmtAmount(Math.abs(Number(t.amount)), currency) + '</span></span></div>';
         }).join("") +
-        '<div class="row between" style="border-top:1px solid var(--divider);padding-top:8px;font-size:13px;"><span class="muted">' + subs.length + ' charge' + (subs.length===1?"":"s") + ' this month</span><span class="mono">' + fmtAmount(subsTotal, currency) + '</span></div>' +
+        '<div class="row between" style="border-top:1px solid var(--divider);padding-top:8px;font-size:13px;"><span class="muted">' + subs.length + ' charge' + (subs.length===1?"":"s") + ' the selected month</span><span class="mono">' + fmtAmount(subsTotal, currency) + '</span></div>' +
       '</div>';
     }
 
@@ -1120,9 +1316,10 @@
       '<div class="filter-row" id="ledgerFilterRow">' +
         ["All"].concat(CATEGORIES).map(function(c){
           var active = state.ledgerFilter === c;
-          return '<span class="tag' + (active ? " tag-accent" : " tag-neutral tag-outline") + '" data-action="filterCat" data-cat="' + escapeHtml(c) + '">' + escapeHtml(c) + '</span>';
+          return '<button type="button" aria-pressed="' + active + '" class="tag' + (active ? " tag-accent" : " tag-neutral tag-outline") + '" data-action="filterCat" data-cat="' + escapeHtml(c) + '">' + escapeHtml(c) + '</button>';
         }).join("") +
       '</div>';
+    els.ledgerStatic.innerHTML += transferSuggestions();
     renderLedgerDynamic();
   }
   function renderLedgerDynamic(){
@@ -1132,6 +1329,7 @@
     var search = state.ledgerSearch.trim().toLowerCase();
 
     var filtered = list.filter(function(t){
+      if(monthKeyOf(t.date) !== selectedMonthKey()) return false;
       if(filter !== "All" && t.category !== filter) return false;
       if(search && (t.merchant||"").toLowerCase().indexOf(search) === -1 && (t.category||"").toLowerCase().indexOf(search) === -1) return false;
       return true;
@@ -1139,7 +1337,9 @@
     filtered.sort(function(a,b){ return dateSortKey(b.date).localeCompare(dateSortKey(a.date)); });
 
     if(!filtered.length){
-      els.ledgerDynamic.innerHTML = '<div class="empty-state">No transactions yet — parse a statement from the Import tab, or add one manually.</div>';
+      els.ledgerDynamic.innerHTML = list.length
+        ? '<div class="empty-state">No matching transactions. Try another month, category, or search.</div>'
+        : '<div class="empty-state"><h2>Your ledger starts here</h2><p>Import a statement or add your first transaction.</p><div class="btn-row"><button class="btn btn-primary" data-action="addManually">Add manually</button><button class="btn btn-secondary" data-action="nav" data-view="import">Import statement</button></div><button class="btn-text" data-action="startDemo">Explore with sample data</button></div>';
       return;
     }
 
@@ -1161,7 +1361,7 @@
         var amt = Number(t.amount) || 0;
         var amtClass = isTransfer ? "transfer" : (amt < 0 ? "neg" : "pos");
         var row = '<div class="tx-row" data-action="openTxEdit" data-id="' + t.id + '">' +
-          '<div class="who"><div class="merchant">' + escapeHtml(t.merchant) + '</div><div class="meta">' + escapeHtml(t.category) + (isTransfer ? " · excluded" : "") + '</div></div>' +
+          '<div class="who"><div class="merchant">' + escapeHtml(t.merchant) + '</div><div class="meta">' + escapeHtml(t.category) + ' · ' + escapeHtml(t.account || 'Account not assigned') + (isTransfer ? " · excluded" : "") + '</div></div>' +
           '<div class="amt ' + amtClass + '">' + fmtAmountSigned(amt, currency) + '</div>' +
         '</div>';
         if(state.editingTxId === t.id){
@@ -1177,6 +1377,8 @@
   function renderEditPanel(t){
     var opts = CATEGORIES.map(function(c){ return '<option value="' + escapeHtml(c) + '"' + (c===t.category?" selected":"") + '>' + escapeHtml(c) + '</option>'; }).join("");
     return '<div class="edit-panel">' +
+      '<div class="field"><label>Account (EUR)</label><select aria-label="Transaction account" data-field="account" data-id="' + t.id + '">' + accountOptions(t.account) + '</select></div>' +
+      (t.category === 'Transfer' ? '<p class="hint">Internal transfer: excluded from spending, income, and budgets.</p><button class="btn btn-secondary" data-action="undoTransfer" data-id="' + t.id + '">Undo transfer classification</button>' : '<button class="btn btn-secondary" data-action="markTransfer" data-id="' + t.id + '">Mark as transfer between my accounts</button>') +
       '<div class="edit-grid">' +
         '<div class="field"><label>Date</label><input type="text" data-field="date" data-id="' + t.id + '" value="' + escapeHtml(t.date) + '"></div>' +
         '<div class="field"><label>Amount</label><input type="text" data-field="amount" data-id="' + t.id + '" value="' + Number(t.amount).toFixed(2) + '"></div>' +
@@ -1191,39 +1393,39 @@
   function renderLimitsView(){
     var currency = loadSettings().currency;
     var list = loadTransactions();
-    var mk = currentMonthKey();
+    var mk = selectedMonthKey();
     var budget = loadBudget();
     var limits = loadLimits();
     var spendByCat = categorySpend(list, mk);
 
-    var rows = CATEGORIES.filter(function(c){ return c !== "Transfer"; }).map(function(c){
+    var rows = CATEGORIES.filter(function(c){ return state.manageCategories || (c !== "Transfer" && c !== "Income"); }).map(function(c){
       var spent = spendByCat[c] || 0;
       var protectedCat = isProtectedCategory(c);
       return '<div class="col" data-cat-row="' + escapeHtml(c) + '" style="gap:6px;padding:10px 0;border-bottom:1px solid var(--divider);">' +
         '<div class="row" style="gap:8px;">' +
-          '<input type="text" data-rename-input="' + escapeHtml(c) + '" value="' + escapeHtml(c) + '" style="flex:1;font-size:14px;"' + (protectedCat ? " disabled" : "") + '>' +
-          '<input type="text" data-limit-input="' + escapeHtml(c) + '" style="max-width:100px;" value="' + (limits[c] ? Number(limits[c]).toFixed(2) : "") + '" placeholder="0.00">' +
-          (protectedCat ? "" : '<button type="button" class="icon-btn" data-action="deleteCategory" data-cat="' + escapeHtml(c) + '" aria-label="Delete category" style="flex:none;">✕</button>') +
+          '<input aria-label="Category name" class="category-name-input" type="text" data-rename-input="' + escapeHtml(c) + '" value="' + escapeHtml(c) + '" style="flex:1;font-size:14px;"' + (protectedCat || !state.manageCategories ? " disabled" : "") + '>' +
+          '<input aria-label="Monthly limit for ' + escapeHtml(c) + '" inputmode="decimal" type="text" data-limit-input="' + escapeHtml(c) + '" style="max-width:100px;' + (state.manageCategories ? 'display:none;' : '') + '" value="' + (limits[c] ? Number(limits[c]).toFixed(2) : "") + '" placeholder="No limit">' +
+          (protectedCat || !state.manageCategories ? "" : '<button type="button" class="icon-btn" data-action="deleteCategory" data-cat="' + escapeHtml(c) + '" aria-label="Delete category" style="flex:none;">✕</button>') +
         '</div>' +
-        '<div class="muted" style="font-size:11.5px;">' + fmtAmount(spent, currency) + ' spent this month' + (protectedCat ? " · built-in category" : "") + '</div>' +
+        '<div class="muted" style="font-size:11.5px;">' + fmtAmount(spent, currency) + ' spent in the selected month' + (protectedCat ? " · built-in category" : "") + '</div>' +
       '</div>';
     }).join("");
 
     els.viewLimits.innerHTML =
       '<div class="card">' +
         '<div class="field"><label for="budgetInput">Overall monthly budget</label><input type="text" id="budgetInput" value="' + (budget ? budget.toFixed(2) : "") + '" placeholder="0.00"></div>' +
-        '<p class="hint">What\'s left to spend on Overview is this budget minus everything spent this month (transfers excluded).</p>' +
+        '<p class="hint">This is a recurring monthly budget, shared across all months. What\'s left to spend on Overview is this budget minus everything spent in the selected month (transfers excluded).</p>' +
       '</div>' +
       '<div class="card col">' +
-        '<div class="kq">Categories &amp; monthly limits</div>' +
+        '<div class="kq">' + (state.manageCategories ? 'Manage categories' : 'Monthly category limits (' + escapeHtml(currency) + ')') + '</div><p class="hint">' + (state.manageCategories ? 'Rename a category, then save changes. Add or remove categories here.' : 'Leave blank for no limit. Income and transfers do not need spending limits.') + '</p>' +
         rows +
-        '<div class="row" style="gap:8px;padding-top:10px;">' +
+        '<div class="row' + (state.manageCategories ? '' : ' hidden') + '" style="gap:8px;padding-top:10px;">' +
           '<input type="text" id="newCategoryInput" placeholder="New category name" style="flex:1;" maxlength="24">' +
           '<button type="button" class="btn btn-secondary" data-action="addCategory" style="flex:none;">Add</button>' +
         '</div>' +
         '<div id="categoryMsg"></div>' +
       '</div>' +
-      '<button type="button" class="btn btn-primary btn-block" data-action="saveLimits">Save</button>' +
+      '<div class="budget-actions"><button type="button" class="btn btn-primary" data-action="saveLimits">Save changes</button><button type="button" class="btn btn-secondary" data-action="manageCategories">' + (state.manageCategories ? 'Save &amp; return to budgets' : 'Save &amp; manage categories') + '</button></div>' +
       '<div id="limitsSaveMsg"></div>';
 
     if(state.limitsFocusCategory){
@@ -1233,11 +1435,17 @@
     }
   }
   function saveLimitsForm(){
-    var budgetVal = parseFloat((q("budgetInput").value || "0").replace(",", "."));
-    saveBudget(isNaN(budgetVal) ? 0 : budgetVal);
+    var budgetVal = Number((q("budgetInput").value || "0").replace(",", "."));
+    var invalid = !Number.isFinite(budgetVal) || budgetVal < 0;
+    document.querySelectorAll('[data-limit-input]').forEach(function(input){
+      var value = Number(input.value.trim().replace(',', '.'));
+      if(!Number.isFinite(value) || value < 0) invalid = true;
+    });
+    if(invalid){ q('limitsSaveMsg').innerHTML = '<div class="banner error" role="alert">Enter a valid amount of zero or more.</div>'; return; }
+    saveBudget(budgetVal);
 
     var renameErrors = [];
-    var limits = {};
+    var limits = loadLimits();
     document.querySelectorAll("[data-cat-row]").forEach(function(row){
       var original = row.dataset.catRow;
       var currentName = original;
@@ -1246,25 +1454,27 @@
         var newVal = nameInput.value.trim();
         if(newVal && newVal !== original){
           var res = renameCategory(original, newVal);
-          if(res.ok) currentName = newVal;
+          if(res.ok){ currentName = newVal; delete limits[original]; }
           else renameErrors.push(res.error);
         }
       }
       var limitInput = row.querySelector("[data-limit-input]");
       var v = parseFloat((limitInput.value || "0").replace(",", "."));
-      if(!isNaN(v) && v > 0) limits[currentName] = v;
+      if(!isNaN(v) && v > 0) limits[currentName] = v; else delete limits[currentName];
     });
     saveLimits(limits);
 
+    renderLimitsView();
     q("limitsSaveMsg").innerHTML = renameErrors.length
       ? '<div class="banner error" style="margin-top:10px;">' + escapeHtml(renameErrors[0]) + '</div>'
       : '<div class="banner success" style="margin-top:10px;">Saved.</div>';
-    renderLimitsView();
     renderAppbar();
   }
   function addCategoryFromForm(){
-    var input = q("newCategoryInput");
-    var res = addCategory(input.value);
+    var name = q("newCategoryInput").value;
+    saveLimitsForm();
+    if(q("limitsSaveMsg").querySelector(".error")) return;
+    var res = addCategory(name);
     if(!res.ok){
       q("categoryMsg").innerHTML = '<div class="banner error" style="margin-top:8px;">' + escapeHtml(res.error) + '</div>';
       return;
@@ -1272,6 +1482,8 @@
     renderLimitsView();
   }
   function deleteCategoryFromForm(name){
+    saveLimitsForm();
+    if(q("limitsSaveMsg").querySelector(".error")) return;
     var res = deleteCategory(name);
     if(!res.ok && !res.cancelled){
       q("categoryMsg").innerHTML = '<div class="banner error" style="margin-top:8px;">' + escapeHtml(res.error) + '</div>';
@@ -1285,7 +1497,7 @@
   function renderCategoryView(){
     var currency = loadSettings().currency;
     var list = loadTransactions();
-    var mk = currentMonthKey();
+    var mk = selectedMonthKey();
     var cat = state.category;
     var limits = loadLimits();
     var limit = limits[cat] || 0;
@@ -1314,7 +1526,7 @@
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
       '<div class="card" style="gap:4px;">' +
         '<div class="kq">Weekly limit</div>' +
-        (weeklyLimit ? '<div class="fig" style="font-size:21px;">' + fmtAmount(weeklyLimit, currency) + '</div><div class="muted" style="font-size:11px;">' + fmtAmount(weekSpent, currency) + ' used this week</div><div class="track thin" style="margin-top:4px;"><div class="fill" style="width:' + Math.min((weekSpent/weeklyLimit)*100,100) + '%;"></div></div>' : '<div class="muted" style="font-size:12px;">No limit set</div>') +
+        (weeklyLimit ? '<div class="fig" style="font-size:21px;">' + fmtAmount(weeklyLimit, currency) + '</div><div class="muted" style="font-size:11px;">' + fmtAmount(weekSpent, currency) + ' used in the last 7 days of this period</div><div class="track thin" style="margin-top:4px;"><div class="fill" style="width:' + Math.min((weekSpent/weeklyLimit)*100,100) + '%;"></div></div>' : '<div class="muted" style="font-size:12px;">No limit set</div>') +
       '</div>' +
       '<div class="card" style="gap:4px;">' +
         '<div class="kq">Last month</div>' +
@@ -1363,7 +1575,7 @@
           '<div><div style="font-size:14px;">' + escapeHtml(t.merchant) + '</div><div class="muted" style="font-size:11.5px;">' + escapeHtml(dateGroupLabel(t.date)) + '</div></div>' +
           '<span class="mono" style="font-size:13.5px;">' + fmtAmount(Math.abs(Number(t.amount)), currency) + '</span>' +
         '</div>';
-      }).join("") : '<div class="empty-state" style="padding:14px 4px;">No transactions in ' + escapeHtml(cat) + ' this month.</div>') +
+      }).join("") : '<div class="empty-state" style="padding:14px 4px;">No transactions in ' + escapeHtml(cat) + ' the selected month.</div>') +
     '</div>';
 
     els.viewCategory.innerHTML = html;
@@ -1372,6 +1584,7 @@
   // ---------- view: import ----------
   function renderImportView(){
     els.importStatic.innerHTML =
+      '<div class="card"><label for="importAccount">Statement account (EUR)</label><select id="importAccount">' + accountOptions(state.importAccount) + '</select><button class="btn-text" data-action="newAccount">Add an account</button><p class="hint">Choose the account this statement belongs to. Import each account separately so transfers can be matched.</p></div>' +
       '<div class="field"><label for="importTextarea">Paste raw statement text</label><textarea id="importTextarea" placeholder="Paste transaction lines from your bank export here — any format. e.g.&#10;MAKSEKORRALDUS COOP TALLINN 14.03 -23,40&#10;NETFLIX.COM 15.03 -13,99">' + escapeHtml(state.importText) + '</textarea></div>' +
       '<button type="button" class="dropzone" data-action="pickFile">' +
         '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);"><rect x="3" y="3" width="18" height="18"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>' +
@@ -1432,7 +1645,7 @@
             (p.isNewCategory ? '<span class="tag tag-accent">new category</span>' : "") +
           '</div>' +
           '<div class="review-grid">' +
-            '<input type="text" data-review-field="date" data-review-id="' + p.id + '" value="' + escapeHtml(p.date) + '" placeholder="date">' +
+            '<select aria-label="Account" data-review-field="account" data-review-id="' + p.id + '">' + accountOptions(p.account) + '</select><input type="text" data-review-field="date" data-review-id="' + p.id + '" value="' + escapeHtml(p.date) + '" placeholder="date">' +
             '<input type="text" data-review-field="merchant" data-review-id="' + p.id + '" value="' + escapeHtml(p.merchant) + '" placeholder="merchant">' +
           '</div>' +
           '<div class="review-grid2">' +
@@ -1574,7 +1787,10 @@
   }
 
   function parseImport(){
+    if(demoData){ showImportStatus("info", "Exit the demo to import your own statement."); return; }
     var s = loadSettings();
+    var account=state.importAccount;
+    if(!account){ showImportStatus("error", "Choose or add the account this statement belongs to first."); return; }
     var text = state.importText.trim();
     var images = uploadedImages.filter(function(img){ return img.status === "queued"; });
 
@@ -1640,12 +1856,13 @@
           var category = known ? rawCat : (wasFreeform && rawCat ? rawCat : "Other");
           return {
             id: makeId("pend"),
+            account: account,
             date: t.date || "",
             merchant: t.merchant || "(unknown)",
-            category: category,
+            category: category === "Transfer" ? "Other" : category,
             isNewCategory: !known && category !== "Other",
             amount: Number(t.amount) || 0,
-            uncertain: !!t.uncertain,
+            uncertain: !!t.uncertain || category === "Transfer",
             excluded: false
           };
         });
@@ -1653,7 +1870,7 @@
         var newCats = mapped.filter(function(p){ return p.isNewCategory; })
           .map(function(p){ return p.category; })
           .filter(function(c, i, arr){ return arr.indexOf(c) === i; });
-        var msg = "Read " + txs.length + " transaction" + (txs.length===1?"":"s") + ". Review below before confirming.";
+        var msg = "Read " + txs.length + " transaction" + (txs.length===1?"":"s") + ". Review below before confirming. Possible own-account transfers stay included until you mark them or confirm a suggested match in the Ledger.";
         if(newCats.length) msg += " Proposed new categories: " + newCats.join(", ") + ".";
         state.importMsg = { type: "success", text: msg };
       }
@@ -1675,7 +1892,7 @@
   function confirmReview(){
     var surviving = pendingReview.filter(function(p){ return !p.excluded; });
     var toAdd = surviving.map(function(p){
-      return { date: p.date, merchant: p.merchant, category: p.category, amount: p.amount };
+      return { account:p.account || "", date: p.date, merchant: p.merchant, category: p.category, amount: p.amount };
     });
     if(!toAdd.length) return;
 
@@ -1703,7 +1920,7 @@
   }
 
   // ---------- settings overlay ----------
-  function openSettings(){ els.settingsOverlay.classList.remove("hidden"); }
+  function openSettings(){ q('accountList').textContent=loadAccounts().join(' · ') || 'No accounts added yet.'; els.settingsOverlay.classList.remove("hidden"); }
   function closeSettings(){ els.settingsOverlay.classList.add("hidden"); }
   function openMenu(){ els.menuOverlay.classList.remove("hidden"); }
   function closeMenu(){ els.menuOverlay.classList.add("hidden"); }
@@ -1712,6 +1929,18 @@
 
   // ---------- action dispatch (event delegation) ----------
   var actions = {
+    newAccount: function(){ q('accountName').value=''; q('accountError').textContent=''; q('accountDialog').showModal(); },
+    cancelAccount: function(){q('accountDialog').close();},
+    confirmTransfer: function(btn){ confirmTransfer(btn.dataset.from,btn.dataset.to); },
+    markTransfer: function(btn){ var list=loadTransactions(),t=list.find(function(t){return t.id===btn.dataset.id;});if(t){t.previousCategory=t.category;t.category='Transfer';saveTransactions(list);renderLedgerView();} },
+    undoTransfer: function(btn){var list=loadTransactions(),t=list.find(function(t){return t.id===btn.dataset.id;});if(t){if(t.transferGroup)unlinkTransfer(list,t.transferGroup);else {t.category=t.previousCategory || (t.amount>0?'Income':'Other');delete t.previousCategory;}saveTransactions(list);renderLedgerView();}},
+    previousMonth: function(){ changeMonth(prevMonthKey(selectedMonthKey())); },
+    nextMonth: function(){ var p=selectedMonthKey().split('-'),d=new Date(+p[0],+p[1],1); changeMonth(d.getFullYear()+'-'+pad2(d.getMonth()+1)); },
+    exportBackup: function(){ exportBackup(); },
+    selectBackup: function(){ if(demoData){ q('backupStatus').textContent='Exit the demo before restoring your data.'; return; } q('backupFile').click(); },
+    mergeBackup: function(){ restoreBackup(false); },
+    replaceBackup: function(){ restoreBackup(true); },
+    cancelBackup: function(){ pendingBackup=null; q('restoreDialog').close(); },
     nav: function(btn){ setView(btn.dataset.view); },
     openSettings: function(){ openSettings(); },
     openMenu: function(){ openMenu(); },
@@ -1720,13 +1949,18 @@
     openQAFromMenu: function(){ closeMenu(); openQA(); },
     closeQA: function(){ closeQA(); },
     closeSettings: function(){ closeSettings(); },
-    quickAdd: function(){
-      var id = addManualRow();
-      state.ledgerFilter = "All";
-      setView("ledger");
-      state.editingTxId = id;
-      renderLedgerDynamic();
+    quickAdd: function(){ q('addDialog').showModal(); },
+    addManually: function(){ q('addDialog').close(); openManual(); },
+    cancelAdd: function(){ q('addDialog').close(); },
+    importScreenshots: function(){
+      q('addDialog').close();
+      if(demoData) exitDemo();
+      setView('import');
+      q('screenshotInput').click();
     },
+    startDemo: function(){ startDemo(); },
+    exitDemo: function(){ exitDemo(); },
+    manageCategories: function(){ saveLimitsForm(); if(q("limitsSaveMsg").querySelector(".error")) return; state.manageCategories = !state.manageCategories; renderLimitsView(); },
     toggleSearch: function(){
       state.ledgerSearchOpen = !state.ledgerSearchOpen;
       if(!state.ledgerSearchOpen) state.ledgerSearch = "";
@@ -1748,7 +1982,7 @@
       renderLedgerDynamic();
     },
     closeTxEdit: function(){ state.editingTxId = null; renderLedgerDynamic(); },
-    deleteTx: function(btn){ deleteTx(btn.dataset.id); state.editingTxId = null; renderLedgerDynamic(); renderAppbar(); },
+    deleteTx: function(btn){ deleteTx(btn.dataset.id); state.editingTxId = null; renderLedgerView(); renderAppbar(); },
     pickFile: function(){ els.fileInput.click(); },
     removeImage: function(btn){ removeImage(+btn.dataset.idx); },
     removePending: function(btn){ removePending(btn.dataset.id); },
@@ -1768,6 +2002,8 @@
 
   document.body.addEventListener("change", function(e){
     var el = e.target;
+    if(el.id === "importAccount"){ state.importAccount=el.value; return; }
+    if(el.id === "monthPicker"){ changeMonth(el.value); return; }
     if(el.matches("[data-field][data-id]")){
       var field = el.dataset.field, id = el.dataset.id;
       var value = el.value;
@@ -1776,7 +2012,7 @@
         value = isNaN(v) ? 0 : v;
       }
       updateField(id, field, value);
-      renderLedgerDynamic();
+      renderLedgerView();
       renderAppbar();
       return;
     }
@@ -1820,7 +2056,37 @@
 
   function els_bootstrap(){
     cacheEls();
+    q('accountForm').addEventListener('submit',function(e){
+      e.preventDefault();var name=q('accountName').value.trim(),accounts=loadAccounts();
+      if(!validBackupName(name) || name.length>60 || accounts.some(function(a){return a.toLowerCase()===name.toLowerCase();})){q('accountError').textContent='Use a unique account name (up to 60 characters).';return;}
+      accounts.push(name);dataStore.setItem(LS_KEY_ACCOUNTS,JSON.stringify(accounts));state.importAccount=name;
+      q('accountDialog').close();q('accountList').textContent=accounts.join(' · ');
+      if(q('manualDialog').open)q('manualAccount').innerHTML=accountOptions(name);
+      if(state.view==='import')renderImportView();
+    });
+    q("backupFile").addEventListener("change", readBackup);
+    q('manualCancel').addEventListener('click', function(){ q('manualDialog').close(); });
+    q('manualType').addEventListener('change', function(){ q('manualCategory').disabled = this.value !== 'expense'; });
+    q('manualForm').addEventListener('submit', function(event){
+      event.preventDefault();
+      var amount = Number(q('manualAmount').value);
+      var merchant = q('manualMerchant').value.trim();
+      if(!merchant || !Number.isFinite(amount) || amount <= 0){ q('manualError').textContent = 'Enter a description and an amount greater than zero.'; return; }
+      var kind = q('manualType').value;
+      var list = loadTransactions();
+      list.push({id:makeId('tx'),date:q('manualDate').value,merchant:merchant,account:q('manualAccount').value,amount:kind === 'income' ? amount : -amount,category:kind === 'income' ? 'Income' : kind === 'transfer' ? 'Transfer' : q('manualCategory').value});
+      saveTransactions(list); state.month=monthKeyOf(q('manualDate').value); q('manualDialog').close();
+      state.ledgerFilter = 'All'; state.ledgerSearch = ''; setView('ledger');
+    });
     els.fileInput.addEventListener("change", handleFileUpload);
+    q('screenshotInput').addEventListener('change', function(e){
+      var files = Array.prototype.slice.call(e.target.files || []);
+      e.target.value = '';
+      files.forEach(function(file){
+        if(ALLOWED_IMAGE_TYPES.indexOf(file.type) >= 0) addImageFile(file);
+        else showImportStatus('error', 'Choose a PNG, JPG, WebP, or GIF screenshot.');
+      });
+    });
     els.saveSettingsBtn.addEventListener("click", saveSettings);
     els.forgetKeyBtn.addEventListener("click", forgetKey);
     els.clearAllBtn.addEventListener("click", clearAllData);
@@ -1911,7 +2177,8 @@
     }
   }
   function setupOnboarding(){
-    q("onbToStep1").addEventListener("click", function(){ onbShowStep(1); });
+    q("onbToStep1").addEventListener("click", function(){ onbFinish(); setView("import"); });
+    q("onbManual").addEventListener("click", function(){ onbFinish(); openManual(); });
     q("onbBackTo0").addEventListener("click", function(){ onbShowStep(0); });
     q("onbToStep2").addEventListener("click", function(){ onbCommitSettings(); onbShowStep(2); });
     q("onbBackTo1").addEventListener("click", function(){ onbShowStep(1); });
@@ -1919,10 +2186,11 @@
     q("onbSkipParse").addEventListener("click", function(){ onbCommitSettings(); onbShowStep(3); });
     q("onbUseExample").addEventListener("click", function(){ els.onbStatementText.value = SAMPLE_STATEMENT; });
     els.onbParseBtn.addEventListener("click", onbParse);
-    q("onbFinish").addEventListener("click", onbFinish);
+    q("onbFinish").addEventListener("click", function(){ onbFinish(); setView("ledger"); });
   }
 })();
 </script>
 
 </body>
 </html>
+
